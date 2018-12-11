@@ -1,0 +1,2 @@
+include Makefile LICENSE
+recursive-include pysp *.py
