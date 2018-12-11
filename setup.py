@@ -29,6 +29,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
+        'PyYAML>=3.12',
     ],
     setup_requires=[
     ],
