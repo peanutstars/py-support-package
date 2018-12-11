@@ -1,0 +1,6 @@
+*.pyc
+__pycache__
+dist
+requirement.txt
+pysp.egg-info
+build
