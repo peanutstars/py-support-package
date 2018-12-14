@@ -49,24 +49,41 @@ main:
     tag: main
 '''.strip()
 
-expected_yml = '''
+merge_yml = '''
+main:
+    sublevel:
+        sublevel:
+            sublevel: Merge Point 1
+merge: Merge Point 2
+'''.strip()
+
+expected_merge_yml = '''
+__include__:
+    fullpath: /tmp/yaml/main.yml
+    value: null
 main:
     cmd: main-command
     sublevel:
+        __include__:
+            fullpath: /tmp/yaml/sub_l1.yml
+            value: sub_l1.yml
         cmd: sub-command
         sublevel:
+            __include__:
+                fullpath: /tmp/yaml/sub_l2.yml
+                value: sub_l2.yml
             cmd: sub-command
-            sublevel: null
+            sublevel: Merge Point 1
             tag: sub level 2
         tag: sub level 1
     tag: main
+merge: Merge Point 2
 '''.strip()
-
 
 yml_files = [main_yml, sub_l1_yml, sub_l2_yml]
 
 def get_var_name(var, dir=locals()):
-    return [key for key, val in dir.items() if id(val) == id(var)]
+    return [key for key, val in dir.items() if id(val) == id(var)][0]
 
 
 
@@ -75,7 +92,7 @@ class YamlTest(unittest.TestCase, PyspDebug):
     folder = '/tmp/yaml/'
 
     def convert_filename(self, var):
-        fname = get_var_name(var)[0].split('_')
+        fname = get_var_name(var).split('_')
         return self.folder+'_'.join(fname[:-1])+'.'+fname[-1]
 
     def load_test(self):
@@ -102,7 +119,15 @@ class YamlTest(unittest.TestCase, PyspDebug):
             self.dprint('Load: {}'.format(fpath))
             self.assertTrue(data == item)
 
-
     def test_yaml(self):
         self.load_test()
         self.store_test()
+
+    def test_yaml_merge(self):
+        self.load_test()
+        dy = self.ymlo
+        uy = YAML.load(merge_yml)
+        yo = YAML.merge(uy, dy)
+        self.dprint(YAML.dump(yo, pretty=True))
+        loaded_yml = YAML.dump(yo, pretty=True).strip()
+        self.assertTrue(loaded_yml == expected_merge_yml)

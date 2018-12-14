@@ -17,6 +17,23 @@ class YAML(PyspDebug):
     EOL = '\n'
 
     @classmethod
+    def dump(cls, yo, pretty=True):
+        if pretty:
+            return yaml.dump(yo, default_flow_style=False, indent=4)
+        return yaml.dump(yo)
+
+    @classmethod
+    def merge(cls, newy, defy):
+        if isinstance(newy, dict) and isinstance(defy, dict):
+            for k, v in defy.items():
+                if k not in newy:
+                    # cls.dprint(k, v)
+                    newy[k] = v
+                else:
+                    newy[k] = cls.merge(newy[k], v) #if newy[k] else v
+        return newy
+
+    @classmethod
     def load(cls, yml, node_value=None):
         yaml.add_constructor(YAML.TAG_INCLUDE, cls.include)
         if os.path.exists(yml):
@@ -105,20 +122,3 @@ class YAML(PyspDebug):
         fname = os.path.join(os.path.dirname(loader.name), node.value)
         cls.dprint('Include YAML:', fname)
         return cls.load(fname, node.value)
-
-    @classmethod
-    def merge(cls, ya, yb):
-        if isinstance(ya, dict) and isinstance(yb, dict):
-            for k, v in yb.items():
-                if k not in ya:
-                    ya[k] = v
-                else:
-                    ya[k] = cls.merge(ya[k], v)
-            return ya
-        raise PyspError('Error Type: ya or yb')
-
-    @classmethod
-    def dump(cls, yo, pretty=True):
-        if pretty:
-            return yaml.dump(yo, default_flow_style=False, indent=4)
-        return yaml.dump(yo)
