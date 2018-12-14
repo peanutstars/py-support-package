@@ -12,7 +12,8 @@ test:
 	# python -m unittest discover -p "test*.py"
 
 clean:
-	@rm -rf build pysp.egg-info
+	@rm -rf build pysp.egg-info .eggs
+	@(find . -name *.pyc -exec rm -rf {} \; 2>$(NULL) || true)
 	@(find . -name __pycache__ -exec rm -rf {} \; 2>$(NULL) || true)
 
 build: test clean

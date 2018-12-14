@@ -3,6 +3,7 @@ import unittest
 
 from pysp.string import KeyExpander
 
+
 class KeyExpanderTest(unittest.TestCase):
 
     def _set_environ(self, kv):
