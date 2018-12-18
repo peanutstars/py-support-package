@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from pysp.string import KeyExpander
+from pysp.basic import KeyExpander
 
 
 class KeyExpanderTest(unittest.TestCase):

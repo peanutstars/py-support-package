@@ -1,5 +1,18 @@
 import os
 import re
+import sys
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def stderr_redirector(stream):
+    old_stderr = sys.stderr
+    sys.stderr = stream
+    try:
+        yield
+    finally:
+        sys.stderr = old_stderr
 
 
 class KeyExpander:

@@ -95,7 +95,7 @@ class YamlTest(unittest.TestCase, PyspDebug):
         fname = get_var_name(var).split('_')
         return self.folder+'_'.join(fname[:-1])+'.'+fname[-1]
 
-    def load_test(self):
+    def load_test(self, yaml):
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
 
@@ -103,15 +103,15 @@ class YamlTest(unittest.TestCase, PyspDebug):
             fpath = self.convert_filename(item)
             self.str_to_file(fpath, item)
         yfile = self.convert_filename(yml_files[0])
-        self.ymlo = YAML.load(yfile)
-        loaded_yml = YAML.dump(self.ymlo, pretty=True).strip()
+        self.ymlo = yaml.load(yfile)
+        loaded_yml = yaml.dump(self.ymlo, pretty=True).strip()
         self.dprint(loaded_yml)
         self.assertTrue(loaded_yml ==  expected_mark_yml)
 
-    def store_test(self):
+    def store_test(self, yaml):
         shutil.rmtree(self.folder)
         os.makedirs(self.folder)
-        YAML.store(self.ymlo)
+        yaml.store(self.ymlo)
 
         for item in yml_files:
             fpath = self.convert_filename(item)
@@ -120,14 +120,16 @@ class YamlTest(unittest.TestCase, PyspDebug):
             self.assertTrue(data == item)
 
     def test_yaml(self):
-        self.load_test()
-        self.store_test()
+        yaml = YAML()
+        self.load_test(yaml)
+        self.store_test(yaml)
 
     def test_yaml_merge(self):
-        self.load_test()
+        yaml = YAML()
+        self.load_test(yaml)
         dy = self.ymlo
-        uy = YAML.load(merge_yml)
-        yo = YAML.merge(uy, dy)
-        self.dprint(YAML.dump(yo, pretty=True))
-        loaded_yml = YAML.dump(yo, pretty=True).strip()
+        uy = yaml.load(merge_yml)
+        yo = yaml.merge(uy, dy)
+        self.dprint(yaml.dump(yo, pretty=True))
+        loaded_yml = yaml.dump(yo, pretty=True).strip()
         self.assertTrue(loaded_yml == expected_merge_yml)

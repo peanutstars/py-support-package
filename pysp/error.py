@@ -1,8 +1,9 @@
 from __future__ import print_function
 import sys
-from functools import partial
+# from functools import partial
+#
+# _print = partial(print, file=sys.stdout)
 
-_print = partial(print, file=sys.stderr)
 
 
 class PyspDebug:
@@ -10,14 +11,14 @@ class PyspDebug:
     TAG_DEBUG = '[D] '
     TAG_ERROR = '[E] '
 
-    @classmethod
-    def dprint(cls, *args, **kwargs):
-        if cls.DEBUG:
-            _print(cls.TAG_DEBUG, *args, **kwargs)
+    # @classmethod
+    def dprint(self, *args, **kwargs):
+        if self.DEBUG:
+            print(self.TAG_DEBUG, *args, file=sys.stderr, **kwargs)
 
-    @classmethod
-    def eprint(cls, *args, **kwargs):
-        _print(cls.TAG_ERROR, *args, **kwargs)
+    # @classmethod
+    def eprint(self, *args, **kwargs):
+        print(self.TAG_ERROR, *args, file=sys.stderr, **kwargs)
 
     @classmethod
     def str_to_file(cls, fpath, data):
@@ -34,7 +35,7 @@ class PyspDebug:
         with open(fpath, 'r') as fd:
             for line in fd:
                 yield line
-        return ''
+        # return ''
 
 class PyspError(Exception):
     pass

@@ -22,25 +22,25 @@ class YAML(PyspDebug):
             return yaml.dump(yo, default_flow_style=False, indent=4)
         return yaml.dump(yo)
 
-    @classmethod
-    def merge(cls, newy, defy):
+    # @classmethod
+    def merge(self, newy, defy):
         if isinstance(newy, dict) and isinstance(defy, dict):
             for k, v in defy.items():
                 if k not in newy:
-                    # cls.dprint(k, v)
+                    # self.dprint(k, v)
                     newy[k] = v
                 else:
-                    newy[k] = cls.merge(newy[k], v) #if newy[k] else v
+                    newy[k] = self.merge(newy[k], v) #if newy[k] else v
         return newy
 
-    @classmethod
-    def load(cls, yml, node_value=None):
-        yaml.add_constructor(YAML.TAG_INCLUDE, cls.include)
+    # @classmethod
+    def load(self, yml, node_value=None):
+        yaml.add_constructor(YAML.TAG_INCLUDE, self.include)
         if os.path.exists(yml):
             with codecs.open(yml, 'r', encoding='utf-8') as fd:
                 try:
                     # pass a file descripter, if use '!include' method
-                    return cls.store_mark(yaml.load(fd), yml, node_value)
+                    return self.store_mark(yaml.load(fd), yml, node_value)
                     # return yaml.load(fd)
                 except yaml.YAMLError as e:
                     emsg = 'Error YAML Loading: %s\n%s' % (yml, str(e))
@@ -51,16 +51,16 @@ class YAML(PyspDebug):
             emsg = 'Error YAML Loading: %s\n%s' % (yml, str(e))
             raise PyspError(emsg)
 
-    @classmethod
-    def store(cls, ymlo, pretty=True):
+    # @classmethod
+    def store(self, ymlo, pretty=True):
         def collect(ymlo, xpath=''):
             ns = []
-            cls.dprint("xpath: '{}'".format(xpath))
+            self.dprint("xpath: '{}'".format(xpath))
             for k, v in ymlo.items():
                 xp = xpath
-                cls.dprint('- ', k)
-                if k == cls.MARK_INCLUDE:
-                    cls.dprint('+ ', xp)
+                self.dprint('- ', k)
+                if k == self.MARK_INCLUDE:
+                    self.dprint('+ ', xp)
                     n = YNode(xpath=xp,
                               fullpath=ymlo[k]['fullpath'],
                               value=ymlo[k]['value'])
@@ -88,25 +88,25 @@ class YAML(PyspDebug):
         def store_node(ymlo, node):
             xpaths = node.xpath.split('.')
             ymlso = get_node(ymlo, xpaths)
-            cls.dprint('xpath={}, value={}'.format(node.xpath, node.value))
-            cls.dprint(YAML.dump(ymlo, pretty=pretty))
+            self.dprint('xpath={}, value={}'.format(node.xpath, node.value))
+            self.dprint(YAML.dump(ymlo, pretty=pretty))
             del ymlso[YAML.MARK_INCLUDE]
             store_file(ymlso, node)
 
             ymlso = get_node(ymlo, xpaths[:-1])
             if node.value:
                 ymlso[xpaths[-1]] = str(YAML.TAG_INCLUDE + ' ' + node.value)
-            cls.dprint(YAML.dump(ymlo, pretty=pretty))
+            self.dprint(YAML.dump(ymlo, pretty=pretty))
 
         nodes = collect(ymlo)
-        # cls.DEBUG = True
+        # self.DEBUG = True
         for n in nodes:
-            cls.dprint('{x}|{f}|{v}'.format(x=n.xpath, f=n.fullpath, v=n.value))
-            cls.dprint('============')
+            self.dprint('{x}|{f}|{v}'.format(x=n.xpath, f=n.fullpath, v=n.value))
+            self.dprint('============')
             store_node(ymlo, n)
 
-    @classmethod
-    def store_mark(cls, yml, fullpath, node_value):
+    # @classmethod
+    def store_mark(self, yml, fullpath, node_value):
         if YAML.MARK_INCLUDE in yml:
             emsg = 'Already use %s key in %s' % (YAML.MARK_INCLUDE, fullpath)
             raise PyspError(emsg)
@@ -116,9 +116,9 @@ class YAML(PyspDebug):
         }
         return yml
 
-    @classmethod
-    def include(cls, loader, node):
-        # cls.DEBUG = True
+    # @classmethod
+    def include(self, loader, node):
+        # self.DEBUG = True
         fname = os.path.join(os.path.dirname(loader.name), node.value)
-        cls.dprint('Include YAML:', fname)
-        return cls.load(fname, node.value)
+        self.dprint('Include YAML:', fname)
+        return self.load(fname, node.value)
