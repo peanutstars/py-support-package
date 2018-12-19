@@ -4,8 +4,9 @@ import os
 import shutil
 import unittest
 
-from pysp.yaml import YAML
+from pysp.basic import FileOp
 from pysp.error import PyspDebug
+from pysp.conf import YAML
 
 
 main_yml = '''
@@ -87,7 +88,7 @@ def get_var_name(var, dir=locals()):
 
 
 
-class YamlTest(unittest.TestCase, PyspDebug):
+class YamlTest(unittest.TestCase, PyspDebug, FileOp):
     # DEBUG = True
     folder = '/tmp/yaml/'
 

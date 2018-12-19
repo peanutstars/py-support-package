@@ -33,3 +33,25 @@ class KeyExpander:
 
         reval = (r'(?<!\\)' if skip_escaped else '') + r'\$(\w+|\{([^}]*)\})'
         return re.sub(reval, replace_var, string)
+
+
+class FileOp:
+    @classmethod
+    def str_to_file(cls, fpath, data):
+        dirname = os.path.dirname(os.path.abspath(fpath))
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        with open(fpath, 'w') as fd:
+            fd.write(data)
+
+    @classmethod
+    def file_to_str(cls, fpath):
+        with open(fpath, 'r') as fd:
+            return fd.read()
+
+    @classmethod
+    def file_to_readline(cls, fpath):
+        with open(fpath, 'r') as fd:
+            for line in fd:
+                yield line
+        # return ''
