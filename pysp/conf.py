@@ -67,12 +67,15 @@ class YAML(PyspDebug):
                 ns += self.collect_node(ymlo[k], xp)
         return ns
 
+    def _check_folder(self, path):
+        dirname = os.path.dirname(os.path.abspath(path))
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
     def store(self, ymlo, pretty=True):
         '''Stored yml object to file.  In processing, yml object is changed.'''
         def store_file(ymlo, node):
-            dirname = os.path.dirname(os.path.abspath(node.fullpath))
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
+            self._check_folder(node.fullpath)
             self.dprint('W: {}'.format(node.fullpath))
             with codecs.open(node.fullpath, 'w', encoding='utf-8') as fd:
                 for line in YAML.dump(ymlo, pretty=pretty).strip().splitlines():
@@ -147,16 +150,22 @@ class Config(YAML):
             nodes = self.collect_node(yobject)
             dirname = os.path.dirname(ymlpath)
             for n in nodes:
-                if n.value:
+                if len(n.xpath.split('.')) > 1:
                     xpath = '{}.{}.fullpath'.format(n.xpath, self.MARK_INCLUDE)
+                else:
+                    xpath = '{}.fullpath'.format(self.MARK_INCLUDE)
+                if n.value:
                     fpath = '{}/{}'.format(dirname, n.value)
-                    self.set_value(xpath, fpath, yobject=yobject)
+                else:
+                    fpath = ymlpath
+                self.set_value(xpath, fpath, yobject=yobject)
 
     def overlay(self, yml_file):
-        if not os.path.exists(yml_file):
-            raise PyspError('Not Exists: {}'.format(yml_file))
-        newy = super(Config, self).load(yml_file)
-        self._data = self.merge(newy, self._data)
+        # if not os.path.exists(yml_file):
+            # raise PyspError('Not Exists: {}'.format(yml_file))
+        if os.path.exists(yml_file):
+            newy = self.load(yml_file)
+            self._data = self.merge(newy, self._data)
         self._fixup_folder(self._data, yml_file)
 
     def store(self, to_abs=None):

@@ -1,5 +1,6 @@
 
 import os
+import shutil
 import unittest
 
 from pysp.basic import FileOp
@@ -93,13 +94,22 @@ class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
         self.config_merge()
 
     def test_config_folder(self):
+        shutil.rmtree(self.def_folder)
+        shutil.rmtree(self.user_folder)
         self.str_to_file(self.def_folder+'vehicle', FolderConfig.root)
         self.str_to_file(self.def_folder+'/folder/sedan',FolderConfig.car_sedan)
         self.str_to_file(self.def_folder+'/folder/suv', FolderConfig.car_suv)
         cfg = Config(self.def_folder+'vehicle')
+        # self.DEBUG = True
+        self.dprint('\n'+cfg.dump())
         cfg.overlay(self.user_folder+'vehicle')
+        self.dprint('\n'+cfg.dump())
         cfg.store()
         cfg2 = Config(self.user_folder+'vehicle')
         self.dprint('\n'+cfg.dump())
         self.dprint('\n'+cfg2.dump())
         self.assertTrue(cfg.dump() == cfg2.dump())
+        for fname in ['vehicle', 'folder/sedan', 'folder/suv']:
+            default_load = self.file_to_str(self.def_folder+fname).strip()
+            user_load = self.file_to_str(self.user_folder+fname).strip()
+            self.assertTrue(default_load == user_load)
