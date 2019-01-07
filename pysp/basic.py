@@ -16,6 +16,8 @@ def stderr_redirector(stream):
 
 
 class KeyExpander:
+    class Error(Exception):
+        pass
 
     # Reference: https://stackoverflow.com/a/30777398
     @classmethod
@@ -32,6 +34,19 @@ class KeyExpander:
             return os.environ.get(m.group(2) or m.group(1), defvalue)
 
         reval = (r'(?<!\\)' if skip_escaped else '') + r'\$(\w+|\{([^}]*)\})'
+        return re.sub(reval, replace_var, string)
+
+    @classmethod
+    def config_vars(cls, config, string):
+        def replace_var(m):
+            value = config.get_value(m.group(2) or m.group(1), m.group(0))
+            if type(value) is list:
+                # Just valid one-dimensional list
+                return ','.join([str(x) for x in value])
+            elif type(value) is dict:
+                raise KeyExpander.Error('No Rules for dict.')
+            return str(value)
+        reval = r'@([\w.]+|\{([^}]*)\})'
         return re.sub(reval, replace_var, string)
 
 
