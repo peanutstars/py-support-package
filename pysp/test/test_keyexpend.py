@@ -1,12 +1,12 @@
 import os
 import unittest
 
-from pysp.basic import KeyExpander, FileOp
+from pysp.basic import StrExpand, FileOp
 from pysp.conf import Config
 from pysp.error import PyspDebug
 
 
-class KeyExpanderTest(PyspDebug, FileOp, unittest.TestCase):
+class StrExpandTest(PyspDebug, FileOp, unittest.TestCase):
 
     def _set_environ(self, kv):
         if kv:
@@ -43,8 +43,8 @@ class KeyExpanderTest(PyspDebug, FileOp, unittest.TestCase):
             rv, expected, string, keyvalue = case
             if keyvalue:
                 self._set_environ(keyvalue)
-            # print('@@', KeyExpander.environ_vars(string))
-            assert rv == (expected == KeyExpander.environ_vars(string))
+            # print('@@', StrExpand.environ_vars(string))
+            assert rv == (expected == StrExpand.environ_vars(string))
 
     def test_config_vars(self):
         yml_string = '''
@@ -63,7 +63,7 @@ text2: Engine is two types - @{vehicle.suv.fuel}.
         self.str_to_file(vehicle_file, yml_string)
         cfg = Config(vehicle_file)
         # self.DEBUG = True
-        cvt_text1 = KeyExpander.config_vars(cfg, cfg.get_value('text1'))
-        cvt_text2 = KeyExpander.config_vars(cfg, cfg.get_value('text2'))
+        cvt_text1 = StrExpand.config_vars(cfg, cfg.get_value('text1'))
+        cvt_text2 = StrExpand.config_vars(cfg, cfg.get_value('text2'))
         self.assertTrue(cvt_text1 == 'Sedan has 4 tires.')
         self.assertTrue(cvt_text2 == 'Engine is two types - disel,gasoline.')

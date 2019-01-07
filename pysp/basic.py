@@ -15,7 +15,7 @@ def stderr_redirector(stream):
         sys.stderr = old_stderr
 
 
-class KeyExpander:
+class StrExpand:
     class Error(Exception):
         pass
 
@@ -44,7 +44,7 @@ class KeyExpander:
                 # Just valid one-dimensional list
                 return ','.join([str(x) for x in value])
             elif type(value) is dict:
-                raise KeyExpander.Error('No Rules for dict.')
+                raise StrExpand.Error('No Rules for dict.')
             return str(value)
         reval = r'@([\w.]+|\{([^}]*)\})'
         return re.sub(reval, replace_var, string)
