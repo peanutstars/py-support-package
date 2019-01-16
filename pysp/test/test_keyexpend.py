@@ -55,15 +55,88 @@ vehicle:
     suv:
         fuel: [disel, gasoline]
         wheels: 4
-
-text1: Sedan has @vehicle.sedan.wheels tires.
-text2: Engine is two types - @{vehicle.suv.fuel}.
 '''
         vehicle_file = '/tmp/test/vehicle.yml'
         self.str_to_file(vehicle_file, yml_string)
         cfg = Config(vehicle_file)
         # self.DEBUG = True
-        cvt_text1 = StrExpand.config_vars(cfg, cfg.get_value('text1'))
-        cvt_text2 = StrExpand.config_vars(cfg, cfg.get_value('text2'))
-        self.assertTrue(cvt_text1 == 'Sedan has 4 tires.')
-        self.assertTrue(cvt_text2 == 'Engine is two types - disel,gasoline.')
+
+        testcase = (
+            (True,  cfg,
+                    'Sedan has 4 tires.',
+                    'Sedan has @vehicle.sedan.wheels tires.', ''),
+            (True,  cfg,
+                    'Engine is two types - disel,gasoline.',
+                    'Engine is two types - @{vehicle.suv.fuel}.', ''),
+            (True,  cfg,
+                    'Engine is two types - @vehicle.suv.fuel.',
+                    'Engine is two types - @vehicle.suv.fuel.', ''),
+            (True,  None,
+                    'Engine is two types - @{vehicle.suv.fuel}.',
+                    'Engine is two types - @{vehicle.suv.fuel}.', ''),
+        )
+
+        for case in testcase:
+            rv, config, expected, string, keyvalue = case
+            if keyvalue:
+                self._set_environ(keyvalue)
+
+            assert rv == (expected == StrExpand.config_vars(config, string))
+
+    def test_convert(self):
+        yml_string = '''
+vehicle:
+    sedan:
+        fuel: [disel, gasoline]
+        wheels: 4
+    suv:
+        fuel: [disel, gasoline]
+        wheels: 4
+link: $ENV_LINK
+link2: "@link"
+'''
+        vehicle_file = '/tmp/test/vehicle.yml'
+        self.str_to_file(vehicle_file, yml_string)
+        cfg = Config(vehicle_file)
+        # self.DEBUG = True
+
+        testcase = (
+            (True,  cfg,
+                    'Sedan has 4 tires.',
+                    'Sedan has @vehicle.sedan.wheels tires.', ''),
+            (True,  cfg,
+                    'Engine is two types - disel,gasoline.',
+                    'Engine is two types - @{vehicle.suv.fuel}.', ''),
+            (True,  cfg,
+                    'Engine is two types - @vehicle.suv.fuel.',
+                    'Engine is two types - @vehicle.suv.fuel.', ''),
+            (True,  None,
+                    'Engine is two types - @{vehicle.suv.fuel}.',
+                    'Engine is two types - @{vehicle.suv.fuel}.', ''),
+            (True,  cfg,
+                    'All vehicle has not 4 tires.',
+                    'All vehicle has not $VEHICLE_TIRES tires.',
+                    'VEHICLE_TIRES=@{vehicle.sedan.wheels}'),
+            (True,  cfg,
+                    '$ENV_LINK',
+                    '$ENV_LINK',
+                    'ENV_LINK=@link'),
+            (True,  None,
+                    '@link',
+                    '$ENV_LINK',
+                    'ENV_LINK=@link'),
+        )
+
+        for case in testcase:
+            rv, config, expected, string, keyvalue = case
+            if keyvalue:
+                self._set_environ(keyvalue)
+
+            assert rv == (expected == StrExpand.convert(string, config=config))
+
+        self._set_environ('ENV_LINK=@link2')
+        try:
+            StrExpand.convert('@link', config=cfg)
+            assert False
+        except StrExpand.Error:
+            pass

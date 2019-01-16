@@ -16,6 +16,8 @@ def stderr_redirector(stream):
 
 
 class StrExpand:
+    MAX_LOOP_COUNT = 30
+
     class Error(Exception):
         pass
 
@@ -46,8 +48,27 @@ class StrExpand:
             elif type(value) is dict:
                 raise StrExpand.Error('No Rules for dict.')
             return str(value)
+
+        if config is None:
+            return string
         reval = r'@([\w.]+|\{([^}]*)\})'
         return re.sub(reval, replace_var, string)
+
+    @classmethod
+    def convert(cls, string, config=None):
+        lpcnt = 0
+        o_string = string
+        while True:
+            p_string = string
+            string = cls.config_vars(config, cls.environ_vars(p_string))
+            # print(p_string, string)
+            if p_string == string:
+                return string
+            lpcnt += 1
+            if lpcnt > cls.MAX_LOOP_COUNT:
+                emsg = 'Infinite Repeat Error: {}'.format(o_string)
+                raise cls.Error(emsg)
+        return string
 
 
 class FileOp:

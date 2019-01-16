@@ -84,3 +84,4 @@ class PyspDebugTest(unittest.TestCase, PyspDebug):
         expected_msg = self.get_expected_msg(t1_dprint) + \
                        self.get_expected_msg(t2_dprint)
         self.assertTrue(expected_msg == stderr_msg)
+        PyspDebug.DEBUG = False
