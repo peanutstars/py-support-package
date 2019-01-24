@@ -1,4 +1,5 @@
 *.pyc
+*.sqlite*
 __pycache__
 dist
 requirement.txt

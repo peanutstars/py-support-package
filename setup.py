@@ -30,6 +30,7 @@ setup(
     ],
     install_requires=[
         'PyYAML>=3.12',
+        'SQLAlchemy>=1.2.14',
     ],
     setup_requires=[
     ],
