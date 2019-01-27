@@ -20,18 +20,20 @@ from sqlalchemy.orm import sessionmaker
 
 
 class SQL(object):
+    TEMP_PREFIX     = 'tmp_'
 
     class Error(Exception):
         pass
 
-    def __init__(self):
+    def __init__(self, config):
         self.meta = sa.MetaData()
         self.engine = None
+        self.config = config
 
-    def init_tables(self, cfg):
+    def init_tables(self):
         meta = sa.MetaData(bind=self.engine)
         meta.reflect()
-        for dictable in cfg.get_value('tables'):
+        for idx, dictable in enumerate(self.config.get_value('tables')):
             self._init_table(meta, dictable)
 
     def _init_table(self, meta, dictable):
@@ -81,7 +83,6 @@ class SQL(object):
                 colobj = self.build_column(colparam)
                 self.add_column(self.engine, tablename, colobj)
 
-
     def is_valid_type(cls, config_type, sql_type):
         dbtypes = {
             'INTEGER':  'Integer',
@@ -129,12 +130,72 @@ class SQL(object):
         # print(str(params), str(args), str(kwargs))
         return sa.Column(*args, **kwargs)
 
-    def add_column(self, engine, table_name, column):
+    def get_table(self, tablename):
+        return sa.Table(tablename, self.meta, autoload=True,
+                        autoload_with=self.engine)
+
+    def add_column(self, engine, tablename, column):
         colname = column.compile(dialect=engine.dialect)
         coltype = column.type.compile(engine.dialect)
-        sql = 'ALTER TABLE %s ADD COLUMN %s %s' % (table_name, colname, coltype)
+        sql = 'ALTER TABLE %s ADD COLUMN %s %s' % (tablename, colname, coltype)
         # print(sql)
         engine.execute(sql)
+
+    # def drop_columns(self, session, tablename, drops):
+    #     ## XXX: This function worked, but lost each the columns property !!
+    #     # BEGIN TRANSACTION;
+    #     # CREATE TABLE t1_backup AS SELECT a, b FROM t1;
+    #     # DROP TABLE t1;
+    #     # ALTER TABLE t1_backup RENAME TO t1;
+    #     # COMMIT;
+    #     remains = []
+    #     tbl = self.get_table(tablename)
+    #     for colname, _ in tbl.c.items():
+    #         if colname in drops:
+    #             continue
+    #         remains.append(colname)
+    #     sqls = ['CREATE TABLE {tn}_backup AS SELECT {cns} FROM {tn}',
+    #             'DROP TABLE {tn}',
+    #             'ALTER TABLE {tn}_backup RENAME TO {tn}']
+    #     form = {
+    #         'tn':   tablename,
+    #         'cns':  ','.join(remains)
+    #     }
+    #     session.begin_nested()
+    #     try:
+    #         for sql in sqls:
+    #             session.execute(sql.format(**form))
+    #         session.commit()
+    #     except:
+    #         session.rollback()
+
+    def drop_columns(self, session, tablename, drops):
+        # BEGIN TRANSACTION;
+        # CREATE TABLE t1_backup ( columns with property )
+        # INSERT INTO t1_backup SELECT a, b FROM t1;
+        # DROP TABLE t1;
+        # ALTER TABLE t1_backup RENAME TO t1;
+        # COMMIT;
+        remains = []
+        tbl = self.get_table(tablename)
+        for colname, _ in tbl.c.items():
+            if colname in drops:
+                continue
+            remains.append(colname)
+        sqls = ['CREATE TABLE {tn}_backup AS SELECT {cns} FROM {tn}',
+                'DROP TABLE {tn}',
+                'ALTER TABLE {tn}_backup RENAME TO {tn}']
+        form = {
+            'tn':   tablename,
+            'cns':  ','.join(remains)
+        }
+        session.begin_nested()
+        try:
+            for sql in sqls:
+                session.execute(sql.format(**form))
+            session.commit()
+        except:
+            session.rollback()
 
 
 class DB(SQL):
@@ -146,7 +207,7 @@ class DB(SQL):
     SQL_V_SIZE  = 5
 
     def __init__(self, dbpath, config):
-        super(DB, self).__init__()
+        super(DB, self).__init__(config)
         self.engine = sa.create_engine(
             'sqlite:///{db}'.format(db=dbpath), echo=True)
         Session = sessionmaker(bind=self.engine)
@@ -155,17 +216,13 @@ class DB(SQL):
             self.session.execute("PRAGMA journal_mode=WAL")
             self.session.execute("PRAGMA foreign_keys=ON")
             self.session.commit()
-        self.init_tables(config)
+        self.init_tables()
 
     def __del__(self):
         self.session.close()
 
     def to_sql(self, o):
         return str(o.compile(compile_kwargs={"literal_binds": True}))
-
-    def get_table(self, tablename):
-        return sa.Table(tablename, self.meta, autoload=True,
-                        autoload_with=self.engine)
 
     def _get_columns(self, table, colnames):
         columns = []
@@ -227,6 +284,7 @@ class DB(SQL):
         qc = sa.sql.select([tbl.c[pk]]).where(pk_column == kwargs[pk])
         qi = sa.insert(tbl).values(**kwargs)
         qu = sa.update(tbl).values(**kwargs).where(pk_column == kwargs[pk])
+        self.session.begin_nested()
         try:
             item = self.session.query(qc).first()
             if item is None:

@@ -6,11 +6,11 @@ import unittest
 from pysp.basic import FileOp
 from pysp.error import PyspDebug
 from pysp.conf import Config
-from pysp.sql import DB
+from pysp.ssql import DB
 
 
 
-class SqlTest(unittest.TestCase, PyspDebug, FileOp):
+class SsqlTest(unittest.TestCase, PyspDebug, FileOp):
     # DEBUG = True
     test_folder     = '/tmp/sql/'
     config_file     = test_folder+'db.cfg'
@@ -19,13 +19,14 @@ class SqlTest(unittest.TestCase, PyspDebug, FileOp):
     def test_db(self):
         if os.path.exists(self.test_folder):
             shutil.rmtree(self.test_folder)
-        self.create_db()
-        self.alter_db()
-        self.upsert_db()
-        self.query_db()
-        self.count_db()
+        self.check_create()
+        self.check_alter()
+        self.check_upsert()
+        self.check_query()
+        self.check_count()
+        self.check_drop_columns()
 
-    def create_db(self):
+    def check_create(self):
         DBCONFIG = '''
 tables:
     - name: inspection
@@ -41,7 +42,7 @@ tables:
         db = DB(self.db_file, dbconfig)
         del db
 
-    def alter_db(self):
+    def check_alter(self):
         DBCONFIG = '''
 tables:
     - name: inspection
@@ -58,7 +59,7 @@ tables:
         db = DB(self.db_file, Config(self.config_file))
         del db
 
-    def upsert_db(self):
+    def check_upsert(self):
         db = DB(self.db_file, Config(self.config_file))
         items = {
             'SNumber':  '0000000000',
@@ -79,7 +80,7 @@ tables:
             db.upsert('inspection', **items)
         del db
 
-    def query_db(self):
+    def check_query(self):
         db = DB(self.db_file, Config(self.config_file))
         columns = ['SNumber', 'Integer', 'Float', 'Alter1', 'Alter2']
         options = {
@@ -115,7 +116,7 @@ tables:
         for item in data:
             self.assertTrue(item[0] in ['0000000000', '0000000005'])
 
-    def count_db(self):
+    def check_count(self):
         db = DB(self.db_file, Config(self.config_file))
         self.assertTrue(db.count('inspection') == 10)
         columns = []
@@ -140,3 +141,22 @@ tables:
             'size': 4,
         }
         self.assertTrue(db.count('inspection', *columns, **options) == 1)
+
+    def check_drop_columns(self):
+        DBCONFIG = '''
+tables:
+    - name: inspection
+      columns:
+        - [SNumber, String10, NotNull, CollateNocase, Unique, PrimaryKey]
+        - [Integer, Integer, NotNull]
+        - [Float, Float]
+        - [DateTime, DateTime]
+        - [Alter1, String15, Unique]
+        - [Alter2, String5]
+      drops:
+        - Bool
+        - Alter1
+'''
+        self.str_to_file(self.config_file, DBCONFIG)
+        db = DB(self.db_file, Config(self.config_file))
+        del db

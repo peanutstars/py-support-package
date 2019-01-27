@@ -57,6 +57,23 @@ QM6:
 '''.strip()
 
 
+class ConfigList:
+    target = '''
+car:
+    sedan:
+      - name: SM6
+        vendor: renault
+      - name: Avante
+        vendor: Hyundae
+      - name: K7
+        vendor: KIA
+      - name: Others
+        vendor:
+          - Ford
+          - BMW
+          - Audi
+'''.strip()
+
 class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
     # DEBUG = True
     def_folder = '/tmp/yaml/default/'
@@ -113,3 +130,26 @@ class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
             default_load = self.file_to_str(self.def_folder+fname).strip()
             user_load = self.file_to_str(self.user_folder+fname).strip()
             self.assertTrue(default_load == user_load)
+
+    def test_access_keylist(self):
+        cfgfile = '/tmp/yaml2/config_list.yml'
+        self.str_to_file(cfgfile, ConfigList.target)
+        cfg = Config(cfgfile)
+        self.assertTrue(cfg.get_value('car.sedan[2].name') == 'K7')
+        self.assertTrue(cfg.get_value('car.sedan[1].vendor') == 'Hyundae')
+        self.assertTrue(cfg.get_value('car.sedan[0].name') == 'SM6')
+        self.assertTrue(cfg.get_value('car.sedan[-2].name') == 'K7')
+        self.assertTrue(cfg.get_value('car.sedan[100].name', 'NA') == 'NA')
+        self.assertTrue(cfg.get_value('car.sedan[-1].vendor[1]') == 'BMW')
+        cfg.set_value('car.sedan[-1].name', 'Overseas')
+        self.assertTrue(cfg.get_value('car.sedan[-1].name') == 'Overseas')
+        cfg.set_value('car.sedan[-1].vendor[-1]', 'Benz')
+        self.assertTrue(cfg.get_value('car.sedan[-1].vendor[-1]') == 'Benz')
+        # Append value to list, but it allows only the index is the next number
+        cfg.set_value('car.sedan[-1].vendor[3]', 'Audi')
+        self.assertTrue(cfg.get_value('car.sedan[-1].vendor[-1]') == 'Audi')
+        cfg.set_value('car.suv[0]', 'QM6')
+        cfg.set_value('car.suv[1]', 'Tusan')
+        cfg.set_value('car.suv[2]', 'Tivoli')
+        self.assertTrue(cfg.get_value('car.suv[-1]') == 'Tivoli')
+        cfg.store()

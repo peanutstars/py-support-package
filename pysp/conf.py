@@ -4,6 +4,7 @@ import codecs
 import copy
 import collections
 import os
+import re
 import yaml
 
 from pysp.error import PyspDebug, PyspError
@@ -132,6 +133,7 @@ class Config(YAML):
 
     def __init__(self, yml_file=None):
         self._data = {}
+        self._re_p = re.compile(r'([\w-]+)\[([-\d]+)\]')
         if yml_file:
             self.loadup(yml_file)
 
@@ -145,9 +147,9 @@ class Config(YAML):
             self.iprint('Overwrite')
         self._data = self.load(yml_file)
 
-    def _fixup_folder(self, yobject, ymlpath):
+    def _fixup_folder(self, oyml, ymlpath):
         if ymlpath:
-            nodes = self.collect_node(yobject)
+            nodes = self.collect_node(oyml)
             dirname = os.path.dirname(ymlpath)
             for n in nodes:
                 if len(n.xpath.split('.')) > 1:
@@ -158,7 +160,7 @@ class Config(YAML):
                     fpath = '{}/{}'.format(dirname, n.value)
                 else:
                     fpath = ymlpath
-                self.set_value(xpath, fpath, yobject=yobject)
+                self.set_value(xpath, fpath, oyml=oyml)
 
     def overlay(self, yml_file):
         # if not os.path.exists(yml_file):
@@ -175,32 +177,70 @@ class Config(YAML):
             self.set_value(self.MARK_INCLUDE, {
                 'fullpath': fullpath,
                 'value': None
-            }, yobject=data)
+            }, oyml=data)
         self._fixup_folder(data, to_abs)
         super(Config, self).store(data)
 
-    def get_value(self, key, defvalue='', yobject=None):
-        data = self._data if yobject is None else yobject
+    def _parse_keylist(self, word):
+        m = self._re_p.match(word)
+        if m and m.lastindex == 2:
+            return m.group(1), int(m.group(2))
+        return None, 0
+
+    def get_value(self, key, defvalue='', oyml=None):
+        data = self._data if oyml is None else oyml
         for k in key.split('.'):
             if k in data:
                 data = data[k]
-            else:
-                return defvalue
+                continue
+            _k, _i = self._parse_keylist(k)
+            if _k and _k in data and type(data[_k]) is list:
+                try:
+                    data = data[_k][_i]
+                    continue
+                except:
+                    pass
+            return defvalue
         return data
 
-    def set_value(self, key, value, yobject=None):
-        data = self._data if yobject is None else yobject
+    def set_value(self, key, value, oyml=None):
+        data = self._data if oyml is None else oyml
         karr = key.split('.')
-        depth = len(karr)
-        for d in range(depth):
-            if karr[d] in data:
-                if d == (depth - 1):
-                    data[karr[d]] = value
+        lenka = len(karr)
+        for d, k in enumerate(karr):
+            if k in data:
+                if d == (lenka - 1):
+                    data[k] = value
                 else:
-                    data = data[karr[d]]
+                    data = data[k]
+                continue
+            # keylist
+            _k, _i = self._parse_keylist(k)
+            if _k and _k in data and type(data[_k]) is list:
+                if d == (lenka - 1):
+                    try:
+                        data[_k][_i] = value
+                    except:
+                        # Append value to list,
+                        # but it allows only the index is the next number
+                        if len(data[_k]) == _i:
+                            data[_k].append(value)
+                            continue
+                        raise PyspError('Index or Not Supported Format #1')
+                else:
+                    data = data[_k][_i]
+                continue
+            if _k:
+                if _k not in data:
+                    # Create a list value
+                    if _i == 0:
+                        data[_k] = []
+                        data[_k].append(value)
+                        continue
+                raise PyspError('Index or Not Supported Format #2')
+            # Others
+            if d == (lenka - 1):
+                data[k] = value
             else:
-                if d == (depth - 1):
-                    data[karr[d]] = value
-                else:
-                    data[karr[d]] = {}
-                    data = data[karr[d]]
+                data[k] = {}
+                data = data[k]
