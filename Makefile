@@ -1,7 +1,8 @@
 SHELL   := /bin/bash
 VERSION := $(shell cat VERSION)
 NULL    := /dev/null
-
+STAMP   := $(shell date +%Y%m%d-%H%M)
+ZIP_FILE:= $(shell basename $(PWD))-$(STAMP).zip
 
 
 all: test
@@ -29,5 +30,8 @@ upload:
 freeze:
 	pip freeze > requirement.txt
 
+zip:
+	@(7z a ../$(ZIP_FILE) ../$(shell basename $(PWD)))
 
-.PHONY: test clean cleanall build upload freeze
+
+.PHONY: test clean cleanall build upload freeze zip

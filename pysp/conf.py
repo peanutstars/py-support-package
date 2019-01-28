@@ -244,3 +244,27 @@ class Config(YAML):
             else:
                 data[k] = {}
                 data = data[k]
+
+    def delete(self, key, oyml=None):
+        data = self._data if oyml is None else oyml
+        karr = key.split('.')
+        lenka = len(karr)
+        for d, k in enumerate(karr):
+            if k in data:
+                if d == (lenka - 1):
+                    del data[k]
+                else:
+                    data = data[k]
+                continue
+            # keylist
+            _k, _i = self._parse_keylist(k)
+            if _k and _k in data and type(data[_k]) is list:
+                if d == (lenka - 1):
+                    try:
+                        del data[_k][_i]
+                    except IndexError:
+                        raise PyspError('Index Out of Range')
+                else:
+                    data = data[_k][_i]
+                continue
+            # Others

@@ -7,6 +7,8 @@ from sqlalchemy import event, or_, and_
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
+from pysp.conf import Config
+
 
 # @event.listens_for(Engine, "connect")
 # def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -19,7 +21,7 @@ from sqlalchemy.orm import sessionmaker
 #         cursor.close()
 
 
-class SQL(object):
+class SSQL(object):
     TEMP_PREFIX     = 'tmp_'
 
     class Error(Exception):
@@ -42,6 +44,15 @@ class SQL(object):
             meta.create_all(self.engine)
         else:
             self._init_columns(meta, dictable)
+            if 'migrate' in dictable and 'operation' in dictable['migrate']:
+                operation = dictable['migrate']['operation']
+                if operation == 'drop':
+                    self.drop_columns(meta, dictable)
+                elif operation == 'rename':
+                    self.rename_columns(meta, dictable)
+
+        if 'migrate' in dictable:
+            self.config.delete('migrate', dictable)
 
     def _create_table(self, meta, dictable):
         tablename = dictable['name']
@@ -62,23 +73,23 @@ class SQL(object):
                 if not self.is_valid_type(colparam[1], coltype):
                     emsg = 'Column {cn}: Not Matched Type - {a}, {b}'.format(
                         cn=colname, a=colparam[1], b=coltype)
-                    raise SQL.Error(emsg)
+                    raise SSQL.Error(emsg)
                 if coltype in ['VARCHAR', 'CHAR']:
                     # print('@@@', colname, column.type.collation, column.type.length)
                     length = int(colparam[1][len('String'):])
                     if length != column.type.length:
                         emsg = 'Column {cn}: Not Matched String Length::' \
                             'Expected %d, but %d' % (length, column.type.length)
-                        raise SQL.Error(emsg.format(cn=colname))
+                        raise SSQL.Error(emsg.format(cn=colname))
                 if 'PrimaryKey' in colparam and column.primary_key == False:
                     emsg = 'Column {cn}: Not Set Primary Key Property'
-                    raise SQL.Error(emsg.format(cn=colname))
+                    raise SSQL.Error(emsg.format(cn=colname))
                 if 'Unique' in colparam and column.unique == False:
                     emsg = 'Column {cn}: Not Set Unique Property'
-                    raise SQL.Error(emsg.format(cn=colname))
+                    raise SSQL.Error(emsg.format(cn=colname))
                 if 'NotNull' in colparam and column.nullable == True:
                     emsg = 'Column {cn}: Not Null'
-                    raise SQL.Error(emsg.format(cn=colname))
+                    raise SSQL.Error(emsg.format(cn=colname))
             else:
                 colobj = self.build_column(colparam)
                 self.add_column(self.engine, tablename, colobj)
@@ -107,7 +118,7 @@ class SQL(object):
                 args = []
                 kwargs = {}
                 if len('String') == len(col_type):
-                    raise SQL.Error('Need Length of String')
+                    raise SSQL.Error('Need Length of String')
                 args.append(int(col_type[len('String'):]))
                 if 'CollateNocase' in params:
                     kwargs['collation'] = 'NOCASE'
@@ -116,7 +127,7 @@ class SQL(object):
                 try:
                     return dbtypes.get(col_type)()
                 except:
-                    raise SQL.Error('Unknown Column Type: {}'.format(col_type))
+                    raise SSQL.Error('Unknown Column Type: {}'.format(col_type))
 
         params = copy.deepcopy(params)
         args = []
@@ -141,64 +152,66 @@ class SQL(object):
         # print(sql)
         engine.execute(sql)
 
-    # def drop_columns(self, session, tablename, drops):
-    #     ## XXX: This function worked, but lost each the columns property !!
-    #     # BEGIN TRANSACTION;
-    #     # CREATE TABLE t1_backup AS SELECT a, b FROM t1;
-    #     # DROP TABLE t1;
-    #     # ALTER TABLE t1_backup RENAME TO t1;
-    #     # COMMIT;
-    #     remains = []
-    #     tbl = self.get_table(tablename)
-    #     for colname, _ in tbl.c.items():
-    #         if colname in drops:
-    #             continue
-    #         remains.append(colname)
-    #     sqls = ['CREATE TABLE {tn}_backup AS SELECT {cns} FROM {tn}',
-    #             'DROP TABLE {tn}',
-    #             'ALTER TABLE {tn}_backup RENAME TO {tn}']
-    #     form = {
-    #         'tn':   tablename,
-    #         'cns':  ','.join(remains)
-    #     }
-    #     session.begin_nested()
-    #     try:
-    #         for sql in sqls:
-    #             session.execute(sql.format(**form))
-    #         session.commit()
-    #     except:
-    #         session.rollback()
-
-    def drop_columns(self, session, tablename, drops):
+    def _drop_columns(self, meta, dictable, colnames):
         # BEGIN TRANSACTION;
+        ### XXX: This function worked, but lost each the columns property !!
+        ### CREATE TABLE t1_backup AS SELECT a, b FROM t1;
         # CREATE TABLE t1_backup ( columns with property )
         # INSERT INTO t1_backup SELECT a, b FROM t1;
         # DROP TABLE t1;
         # ALTER TABLE t1_backup RENAME TO t1;
         # COMMIT;
-        remains = []
-        tbl = self.get_table(tablename)
-        for colname, _ in tbl.c.items():
-            if colname in drops:
-                continue
-            remains.append(colname)
-        sqls = ['CREATE TABLE {tn}_backup AS SELECT {cns} FROM {tn}',
+        tablename = dictable['name']
+        dictable['name'] = self.TEMP_PREFIX + tablename
+        sqls = ['INSERT INTO tmp_{tn} SELECT {cns} FROM {tn}',
                 'DROP TABLE {tn}',
-                'ALTER TABLE {tn}_backup RENAME TO {tn}']
+                'ALTER TABLE tmp_{tn} RENAME TO {tn}']
         form = {
             'tn':   tablename,
-            'cns':  ','.join(remains)
+            'ttn':  dictable['name'],
+            'cns':  ','.join(colnames)
         }
-        session.begin_nested()
+        # Check to exist tmp_tablename
+        try:
+            self.get_table(form['ttn'])
+            emesg = 'Already Exists Table "{ttn}"'
+            raise SSQL.Error(emsg.format(**form))
+        except sa.exc.NoSuchTableError:
+            self._create_table(meta, dictable)
+            meta.create_all(self.engine)
+
+        self.session.begin_nested()
         try:
             for sql in sqls:
-                session.execute(sql.format(**form))
-            session.commit()
+                self.session.execute(sql.format(**form))
+            self.session.commit()
         except:
-            session.rollback()
+            self.session.rollback()
+        # Restore the name of table
+        dictable['name'] = tablename
+
+    def drop_columns(self, meta, dictable):
+        '''It handles columns of a table to the process of dropping and adding,
+        concurrently.'''
+        remains = []
+        for colparam in dictable['columns']:
+            remains.append(colparam[0])
+        self._drop_columns(meta, dictable, remains)
+
+    def rename_columns(self, meta, dictable):
+        '''It handles columns of a table to the process of dropping, renaming,
+        and adding, concurrently.'''
+        remains = []
+        renpool = dictable['migrate']['columns']
+        for colparam in dictable['columns']:
+            if colparam[0] in renpool:
+                remains.append(renpool[colparam[0]])
+            else:
+                remains.append(colparam[0])
+        self._drop_columns(meta, dictable, remains)
 
 
-class DB(SQL):
+class SimpleDB(SSQL):
     OP_AND      = 'and'
     OP_OR       = 'or'
     SQL_PAGE    = 'page'
@@ -207,7 +220,7 @@ class DB(SQL):
     SQL_V_SIZE  = 5
 
     def __init__(self, dbpath, config):
-        super(DB, self).__init__(config)
+        super(SimpleDB, self).__init__(config)
         self.engine = sa.create_engine(
             'sqlite:///{db}'.format(db=dbpath), echo=True)
         Session = sessionmaker(bind=self.engine)
@@ -219,7 +232,10 @@ class DB(SQL):
         self.init_tables()
 
     def __del__(self):
-        self.session.close()
+        if hasattr(self, 'session'):
+            self.session.close()
+        if self.config and hasattr(self.config, 'store'):
+            self.config.store()
 
     def to_sql(self, o):
         return str(o.compile(compile_kwargs={"literal_binds": True}))
@@ -307,7 +323,7 @@ class DB(SQL):
         try:
             return self.session.query(qo).all()
         except:
-            raise DB.Error('Query: {}'.format(self.to_sql(qo)))
+            raise SimpleDB.Error('Query: {}'.format(self.to_sql(qo)))
 
     def count(self, tablename, *args, **kwargs):
         tbl = self.get_table(tablename)
@@ -315,4 +331,10 @@ class DB(SQL):
         try:
             return self.session.query(qo).count()
         except:
-            raise DB.Error('Count: {}'.format(self.to_sql(qo)))
+            raise SimpleDB.Error('Count: {}'.format(self.to_sql(qo)))
+
+    def vacuum(self):
+        if self.session.bind.dialect.name == 'sqlite':
+            self.session.execute('VACUUM')
+            return
+        raise SimpleDB.Error('Not Implemented to VACCUM')

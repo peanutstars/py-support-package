@@ -1,12 +1,13 @@
 
 import os
 import shutil
+import sqlalchemy as sa
 import unittest
 
 from pysp.basic import FileOp
 from pysp.error import PyspDebug
 from pysp.conf import Config
-from pysp.ssql import DB
+from pysp.ssql import SimpleDB
 
 
 
@@ -19,12 +20,16 @@ class SsqlTest(unittest.TestCase, PyspDebug, FileOp):
     def test_db(self):
         if os.path.exists(self.test_folder):
             shutil.rmtree(self.test_folder)
-        self.check_create()
-        self.check_alter()
-        self.check_upsert()
-        self.check_query()
-        self.check_count()
-        self.check_drop_columns()
+        try:
+            self.check_create()
+            self.check_alter()
+            self.check_upsert()
+            self.check_query()
+            self.check_count()
+            self.check_drop_columns()
+            self.check_rename_columns()
+        except:
+            self.assertTrue(False)
 
     def check_create(self):
         DBCONFIG = '''
@@ -39,7 +44,7 @@ tables:
 '''
         self.str_to_file(self.config_file, DBCONFIG)
         dbconfig = Config(self.config_file)
-        db = DB(self.db_file, dbconfig)
+        db = SimpleDB(self.db_file, dbconfig)
         del db
 
     def check_alter(self):
@@ -56,11 +61,11 @@ tables:
         - [Alter2, String5]
 '''
         self.str_to_file(self.config_file, DBCONFIG)
-        db = DB(self.db_file, Config(self.config_file))
+        db = SimpleDB(self.db_file, Config(self.config_file))
         del db
 
     def check_upsert(self):
-        db = DB(self.db_file, Config(self.config_file))
+        db = SimpleDB(self.db_file, Config(self.config_file))
         items = {
             'SNumber':  '0000000000',
             'Integer':  1234,
@@ -69,6 +74,7 @@ tables:
         items = {
             'SNumber':  '0000000000',
             'Alter2':   'Five5',
+            'DateTime': sa.sql.func.now(),
         }
         db.upsert('inspection', **items)
         for i in range(10):
@@ -81,14 +87,14 @@ tables:
         del db
 
     def check_query(self):
-        db = DB(self.db_file, Config(self.config_file))
+        db = SimpleDB(self.db_file, Config(self.config_file))
         columns = ['SNumber', 'Integer', 'Float', 'Alter1', 'Alter2']
         options = {
             'wheres': {
                 'Alter1': ['00000', '00005'],
                 'Alter2': 'Five5',
             },
-            'operate': DB.OP_AND,
+            'operate': SimpleDB.OP_AND,
             'page': 0,
             'size': 4,
         }
@@ -107,7 +113,7 @@ tables:
                 'Alter1': ['00000', '00005'],
                 'Alter2': 'Five5',
             },
-            'operate': DB.OP_OR,
+            'operate': SimpleDB.OP_OR,
             'page': 0,
             'size': 4,
         }
@@ -117,7 +123,7 @@ tables:
             self.assertTrue(item[0] in ['0000000000', '0000000005'])
 
     def check_count(self):
-        db = DB(self.db_file, Config(self.config_file))
+        db = SimpleDB(self.db_file, Config(self.config_file))
         self.assertTrue(db.count('inspection') == 10)
         columns = []
         options = {
@@ -125,7 +131,7 @@ tables:
                 'Alter1': ['00000', '005'],
                 'Alter2': 'Five5',
             },
-            'operate': DB.OP_OR,
+            'operate': SimpleDB.OP_OR,
             'page': 0,
             'size': 4,
         }
@@ -136,7 +142,7 @@ tables:
                 'Alter1': ['00000', '00005'],
                 'Alter2': 'Five5',
             },
-            'operate': DB.OP_AND,
+            'operate': SimpleDB.OP_AND,
             'page': 0,
             'size': 4,
         }
@@ -151,12 +157,50 @@ tables:
         - [Integer, Integer, NotNull]
         - [Float, Float]
         - [DateTime, DateTime]
-        - [Alter1, String15, Unique]
         - [Alter2, String5]
-      drops:
-        - Bool
-        - Alter1
+      migrate:
+        operation: drop
 '''
         self.str_to_file(self.config_file, DBCONFIG)
-        db = DB(self.db_file, Config(self.config_file))
+        db = SimpleDB(self.db_file, Config(self.config_file))
+        columns = ['SNumber', 'Integer', 'Alter2']
+        options = {
+            'wheres': {
+                'Alter2': 'Five5',
+            },
+            'operate': SimpleDB.OP_AND,
+            'page': 0,
+            'size': 4,
+        }
+        self.assertTrue(db.count('inspection', *columns, **options) == 1)
+        del db
+
+    def check_rename_columns(self):
+        DBCONFIG = '''
+tables:
+    - name: inspection
+      columns:
+        - [SNumber, String10, NotNull, CollateNocase, Unique, PrimaryKey]
+        - [Pass, String5]
+        - [AString, String20]
+        - [Integer, Integer, NotNull]
+        - [DateTime, DateTime]
+      migrate:
+        operation: rename
+        columns:
+            Pass: Alter2
+'''
+        self.str_to_file(self.config_file, DBCONFIG)
+        db = SimpleDB(self.db_file, Config(self.config_file))
+        columns = ['SNumber', 'Integer', 'Pass']
+        options = {
+            'wheres': {
+                'Pass': 'Five5',
+            },
+            'operate': SimpleDB.OP_AND,
+            'page': 0,
+            'size': 4,
+        }
+        self.assertTrue(db.count('inspection', *columns, **options) == 1)
+        db.vacuum()
         del db
