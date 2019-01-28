@@ -212,6 +212,7 @@ class SSQL(object):
 
 
 class SimpleDB(SSQL):
+    SQL_ECHO    = False
     OP_AND      = 'and'
     OP_OR       = 'or'
     SQL_PAGE    = 'page'
@@ -222,7 +223,7 @@ class SimpleDB(SSQL):
     def __init__(self, dbpath, config):
         super(SimpleDB, self).__init__(config)
         self.engine = sa.create_engine(
-            'sqlite:///{db}'.format(db=dbpath), echo=True)
+            'sqlite:///{db}'.format(db=dbpath), echo=self.SQL_ECHO)
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
         if self.session.bind.dialect.name == 'sqlite':

@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import sys
@@ -73,10 +74,14 @@ class StrExpand:
 
 class FileOp:
     @classmethod
-    def str_to_file(cls, fpath, data):
+    def mkdir(cls, fpath):
         dirname = os.path.dirname(os.path.abspath(fpath))
         if not os.path.exists(dirname):
             os.makedirs(dirname)
+
+    @classmethod
+    def str_to_file(cls, fpath, data):
+        cls.mkdir(fpath)
         with open(fpath, 'w') as fd:
             fd.write(data)
 
@@ -91,3 +96,21 @@ class FileOp:
             for line in fd:
                 yield line
         # return ''
+
+
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Stamp:
+    DB_DATETIME         = '%Y-%m-%d %H:%M:%S'
+    DB_DATE             = '%Y-%m-%d'
+    DATE_SEPERATERS = '.-_/'
+
+    @classmethod
+    def now(cls, form=DB_DATETIME):
+        return datetime.datetime.now().strftime(form)
