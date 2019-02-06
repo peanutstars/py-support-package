@@ -6,7 +6,7 @@ import inspect
 import unittest
 import os
 
-from pysp.csv import CSV
+from pysp.scsv import SCSV
 
 
 
@@ -53,7 +53,7 @@ class CSVTest(unittest.TestCase):
     #         os.remove(del_file)
 
     def test_normal_csv_file(self):
-        csv = CSV(self.TMP_CSV_NORMAL_FILE, 'Normal', self.data_columns)
+        csv = SCSV(self.TMP_CSV_NORMAL_FILE, 'Normal', self.data_columns)
         for field in self.data_fields:
             csv.write_field(field)
         del csv
@@ -64,7 +64,7 @@ class CSVTest(unittest.TestCase):
             self.assertTrue(content[0x20:] == NORMAL_CONTENT[0x20:])
 
     def test_string_csv_file(self):
-        csv = CSV(self.TMP_CSV_STRING_FILE, 'To String', self.data_columns)
+        csv = SCSV(self.TMP_CSV_STRING_FILE, 'To String', self.data_columns)
         for field in self.data_fields:
             csv.write_field(field, to_str=True)
         del csv
@@ -76,8 +76,8 @@ class CSVTest(unittest.TestCase):
 
     def test_split_csv_file(self):
         field = ['split', 3, 3.333]
-        CSV.MAX_FIELD_COUNT = 10
-        csv = CSV(self.TMP_CSV_SPLIT_FILE, 'SPLIT CSV', self.data_columns)
+        SCSV.MAX_FIELD_COUNT = 10
+        csv = SCSV(self.TMP_CSV_SPLIT_FILE, 'SPLIT CSV', self.data_columns)
         for i in range(25):
             csv.write_field(field)
         del csv
@@ -86,7 +86,7 @@ class CSVTest(unittest.TestCase):
         fname = '.'.join(apath[:-1])
         ext = apath[-1]
         for i in range(3):
-            filename = CSV.SPLIT_FILE_FORMAT.format(
+            filename = SCSV.SPLIT_FILE_FORMAT.format(
                         fname=fname, idx=i, ext=ext)
             print(filename)
             self.assertTrue(os.path.exists(filename))

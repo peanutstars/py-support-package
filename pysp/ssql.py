@@ -7,7 +7,7 @@ from sqlalchemy import event, or_, and_
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
-from pysp.conf import Config
+from pysp.sconf import SConfig
 
 
 # @event.listens_for(Engine, "connect")
@@ -211,7 +211,7 @@ class SSQL(object):
         self._drop_columns(meta, dictable, remains)
 
 
-class SimpleDB(SSQL):
+class SSimpleDB(SSQL):
     SQL_ECHO    = False
     OP_AND      = 'and'
     OP_OR       = 'or'
@@ -221,7 +221,7 @@ class SimpleDB(SSQL):
     SQL_V_SIZE  = 5
 
     def __init__(self, dbpath, config):
-        super(SimpleDB, self).__init__(config)
+        super(SSimpleDB, self).__init__(config)
         self.engine = sa.create_engine(
             'sqlite:///{db}'.format(db=dbpath), echo=self.SQL_ECHO)
         Session = sessionmaker(bind=self.engine)
@@ -324,7 +324,7 @@ class SimpleDB(SSQL):
         try:
             return self.session.query(qo).all()
         except:
-            raise SimpleDB.Error('Query: {}'.format(self.to_sql(qo)))
+            raise SSimpleDB.Error('Query: {}'.format(self.to_sql(qo)))
 
     def count(self, tablename, *args, **kwargs):
         tbl = self.get_table(tablename)
@@ -332,10 +332,10 @@ class SimpleDB(SSQL):
         try:
             return self.session.query(qo).count()
         except:
-            raise SimpleDB.Error('Count: {}'.format(self.to_sql(qo)))
+            raise SSimpleDB.Error('Count: {}'.format(self.to_sql(qo)))
 
     def vacuum(self):
         if self.session.bind.dialect.name == 'sqlite':
             self.session.execute('VACUUM')
             return
-        raise SimpleDB.Error('Not Implemented to VACCUM')
+        raise SSimpleDB.Error('Not Implemented to VACCUM')

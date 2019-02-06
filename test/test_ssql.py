@@ -4,14 +4,14 @@ import shutil
 import sqlalchemy as sa
 import unittest
 
-from pysp.basic import FileOp
+from pysp.sbasic import SFileOp
 from pysp.error import PyspDebug
-from pysp.conf import Config
-from pysp.ssql import SimpleDB
+from pysp.sconf import SConfig
+from pysp.ssql import SSimpleDB
 
 
 
-class SsqlTest(unittest.TestCase, PyspDebug, FileOp):
+class SsqlTest(unittest.TestCase, PyspDebug, SFileOp):
     # DEBUG = True
     test_folder     = '/tmp/sql/'
     config_file     = test_folder+'db.cfg'
@@ -43,8 +43,8 @@ tables:
         - [DateTime, DateTime]
 '''
         self.str_to_file(self.config_file, DBCONFIG)
-        dbconfig = Config(self.config_file)
-        db = SimpleDB(self.db_file, dbconfig)
+        dbconfig = SConfig(self.config_file)
+        db = SSimpleDB(self.db_file, dbconfig)
         del db
 
     def check_alter(self):
@@ -61,11 +61,11 @@ tables:
         - [Alter2, String5]
 '''
         self.str_to_file(self.config_file, DBCONFIG)
-        db = SimpleDB(self.db_file, Config(self.config_file))
+        db = SSimpleDB(self.db_file, SConfig(self.config_file))
         del db
 
     def check_upsert(self):
-        db = SimpleDB(self.db_file, Config(self.config_file))
+        db = SSimpleDB(self.db_file, SConfig(self.config_file))
         items = {
             'SNumber':  '0000000000',
             'Integer':  1234,
@@ -87,14 +87,14 @@ tables:
         del db
 
     def check_query(self):
-        db = SimpleDB(self.db_file, Config(self.config_file))
+        db = SSimpleDB(self.db_file, SConfig(self.config_file))
         columns = ['SNumber', 'Integer', 'Float', 'Alter1', 'Alter2']
         options = {
             'wheres': {
                 'Alter1': ['00000', '00005'],
                 'Alter2': 'Five5',
             },
-            'operate': SimpleDB.OP_AND,
+            'operate': SSimpleDB.OP_AND,
             'page': 0,
             'size': 4,
         }
@@ -113,7 +113,7 @@ tables:
                 'Alter1': ['00000', '00005'],
                 'Alter2': 'Five5',
             },
-            'operate': SimpleDB.OP_OR,
+            'operate': SSimpleDB.OP_OR,
             'page': 0,
             'size': 4,
         }
@@ -123,7 +123,7 @@ tables:
             self.assertTrue(item[0] in ['0000000000', '0000000005'])
 
     def check_count(self):
-        db = SimpleDB(self.db_file, Config(self.config_file))
+        db = SSimpleDB(self.db_file, SConfig(self.config_file))
         self.assertTrue(db.count('inspection') == 10)
         columns = []
         options = {
@@ -131,7 +131,7 @@ tables:
                 'Alter1': ['00000', '005'],
                 'Alter2': 'Five5',
             },
-            'operate': SimpleDB.OP_OR,
+            'operate': SSimpleDB.OP_OR,
             'page': 0,
             'size': 4,
         }
@@ -142,7 +142,7 @@ tables:
                 'Alter1': ['00000', '00005'],
                 'Alter2': 'Five5',
             },
-            'operate': SimpleDB.OP_AND,
+            'operate': SSimpleDB.OP_AND,
             'page': 0,
             'size': 4,
         }
@@ -162,13 +162,13 @@ tables:
         operation: drop
 '''
         self.str_to_file(self.config_file, DBCONFIG)
-        db = SimpleDB(self.db_file, Config(self.config_file))
+        db = SSimpleDB(self.db_file, SConfig(self.config_file))
         columns = ['SNumber', 'Integer', 'Alter2']
         options = {
             'wheres': {
                 'Alter2': 'Five5',
             },
-            'operate': SimpleDB.OP_AND,
+            'operate': SSimpleDB.OP_AND,
             'page': 0,
             'size': 4,
         }
@@ -191,13 +191,13 @@ tables:
             Pass: Alter2
 '''
         self.str_to_file(self.config_file, DBCONFIG)
-        db = SimpleDB(self.db_file, Config(self.config_file))
+        db = SSimpleDB(self.db_file, SConfig(self.config_file))
         columns = ['SNumber', 'Integer', 'Pass']
         options = {
             'wheres': {
                 'Pass': 'Five5',
             },
-            'operate': SimpleDB.OP_AND,
+            'operate': SSimpleDB.OP_AND,
             'page': 0,
             'size': 4,
         }

@@ -4,7 +4,7 @@ import sys
 import unittest
 
 from pysp.error import PyspDebug
-from pysp.basic import stderr_redirector
+from pysp.sbasic import stderr_redirector
 
 
 

@@ -30,7 +30,7 @@ upload:
 freeze:
 	pip freeze > requirement.txt
 
-zip:
+zip: clean
 	@(7z a ../$(ZIP_FILE) ../$(shell basename $(PWD)))
 
 

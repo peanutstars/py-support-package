@@ -2,10 +2,10 @@
 import codecs
 import os
 
-from pysp.basic import FileOp, Stamp
+from pysp.sbasic import SFileOp, SStamp
 
 
-class TextFile(FileOp):
+class STextFile(SFileOp):
     SPLIT_FILE_FORMAT   = '{fname}-{idx:03d}.{ext}'
     EOL                 = '\r\n'
 
@@ -43,12 +43,12 @@ class TextFile(FileOp):
         self.fd.write(string+self.EOL)
 
 
-class CSV(TextFile):
+class SCSV(STextFile):
     MAX_FIELD_COUNT     = 100000
     APPEND_SUBTITLE     = '{title} / continue {idx:03d}'
 
     def __init__(self, path, title, columns):
-        super(CSV, self).__init__(path)
+        super(SCSV, self).__init__(path)
         self.title = title
         # self.schema = schema
         self.columns = columns
@@ -69,7 +69,7 @@ class CSV(TextFile):
             _title = self.APPEND_SUBTITLE.format(
                                 title=self.title, idx=self.split_index)
         self.writeln(_title + self.blank_line[:-1])
-        self.writeln(Stamp.now() + self.blank_line[:-1])
+        self.writeln(SStamp.now() + self.blank_line[:-1])
         self.writeln(','+','.join(self.columns))
 
     def column_to_str(self, value):

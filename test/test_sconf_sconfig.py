@@ -3,9 +3,9 @@ import os
 import shutil
 import unittest
 
-from pysp.basic import FileOp
+from pysp.sbasic import SFileOp
 from pysp.error import PyspDebug
-from pysp.conf import Config
+from pysp.sconf import SConfig
 
 class Expected:
     default_vehicle = '''
@@ -74,13 +74,13 @@ car:
           - Audi
 '''.strip()
 
-class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
+class ConfigTest(unittest.TestCase, PyspDebug, SFileOp):
     # DEBUG = True
     def_folder = '/tmp/yaml/default/'
     user_folder = '/tmp/yaml/user/'
 
     def config_create_default(self):
-        cfg = Config()
+        cfg = SConfig()
         cfg.set_value('car.suv.QM6.transmission', 'cvt')
         cfg.set_value('car.sedan.SM6.transmission', 'cvt')
         cfgfile = self.def_folder+'vehicle'
@@ -89,7 +89,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
         self.assertTrue(Expected.default_vehicle == load_vehicle)
 
     def config_create_user(self):
-        cfg = Config()
+        cfg = SConfig()
         cfg.set_value('car.suv.QM6.transmission', 'CVT')
         cfg.set_value('car.suv.QM6.color', 'cloud-perl')
         cfgfile = self.user_folder+'vehicle'
@@ -98,7 +98,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
         self.assertTrue(Expected.user_vehicle == load_vehicle)
 
     def config_merge(self):
-        cfg = Config(self.def_folder+'vehicle')
+        cfg = SConfig(self.def_folder+'vehicle')
         cfg.overlay(self.user_folder+'vehicle')
         cfg.store()
         cfgfile = self.user_folder+'vehicle'
@@ -116,13 +116,13 @@ class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
         self.str_to_file(self.def_folder+'vehicle', FolderConfig.root)
         self.str_to_file(self.def_folder+'/folder/sedan',FolderConfig.car_sedan)
         self.str_to_file(self.def_folder+'/folder/suv', FolderConfig.car_suv)
-        cfg = Config(self.def_folder+'vehicle')
+        cfg = SConfig(self.def_folder+'vehicle')
         # self.DEBUG = True
         self.dprint('\n'+cfg.dump())
         cfg.overlay(self.user_folder+'vehicle')
         self.dprint('\n'+cfg.dump())
         cfg.store()
-        cfg2 = Config(self.user_folder+'vehicle')
+        cfg2 = SConfig(self.user_folder+'vehicle')
         self.dprint('\n'+cfg.dump())
         self.dprint('\n'+cfg2.dump())
         self.assertTrue(cfg.dump() == cfg2.dump())
@@ -134,7 +134,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, FileOp):
     def test_access_keylist(self):
         cfgfile = '/tmp/yaml2/config_list.yml'
         self.str_to_file(cfgfile, ConfigList.target)
-        cfg = Config(cfgfile)
+        cfg = SConfig(cfgfile)
         self.assertTrue(cfg.get_value('car.sedan[2].name') == 'K7')
         self.assertTrue(cfg.get_value('car.sedan[1].vendor') == 'Hyundae')
         self.assertTrue(cfg.get_value('car.sedan[0].name') == 'SM6')

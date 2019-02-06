@@ -1,12 +1,12 @@
 import os
 import unittest
 
-from pysp.basic import StrExpand, FileOp
-from pysp.conf import Config
+from pysp.sbasic import SStrExpand, SFileOp
+from pysp.sconf import SConfig
 from pysp.error import PyspDebug
 
 
-class StrExpandTest(PyspDebug, FileOp, unittest.TestCase):
+class StrExpandTest(PyspDebug, SFileOp, unittest.TestCase):
 
     def _set_environ(self, kv):
         if kv:
@@ -43,8 +43,8 @@ class StrExpandTest(PyspDebug, FileOp, unittest.TestCase):
             rv, expected, string, keyvalue = case
             if keyvalue:
                 self._set_environ(keyvalue)
-            # print('@@', StrExpand.environ_vars(string))
-            assert rv == (expected == StrExpand.environ_vars(string))
+            # print('@@', SStrExpand.environ_vars(string))
+            assert rv == (expected == SStrExpand.environ_vars(string))
 
     def test_config_vars(self):
         yml_string = '''
@@ -58,7 +58,7 @@ vehicle:
 '''
         vehicle_file = '/tmp/test/vehicle.yml'
         self.str_to_file(vehicle_file, yml_string)
-        cfg = Config(vehicle_file)
+        cfg = SConfig(vehicle_file)
         # self.DEBUG = True
 
         testcase = (
@@ -81,7 +81,7 @@ vehicle:
             if keyvalue:
                 self._set_environ(keyvalue)
 
-            assert rv == (expected == StrExpand.config_vars(config, string))
+            assert rv == (expected == SStrExpand.config_vars(config, string))
 
     def test_convert(self):
         yml_string = '''
@@ -97,7 +97,7 @@ link2: "@link"
 '''
         vehicle_file = '/tmp/test/vehicle.yml'
         self.str_to_file(vehicle_file, yml_string)
-        cfg = Config(vehicle_file)
+        cfg = SConfig(vehicle_file)
         # self.DEBUG = True
 
         testcase = (
@@ -132,11 +132,11 @@ link2: "@link"
             if keyvalue:
                 self._set_environ(keyvalue)
 
-            assert rv == (expected == StrExpand.convert(string, config=config))
+            assert rv == (expected == SStrExpand.convert(string, config=config))
 
         self._set_environ('ENV_LINK=@link2')
         try:
-            StrExpand.convert('@link', config=cfg)
+            SStrExpand.convert('@link', config=cfg)
             assert False
-        except StrExpand.Error:
+        except SStrExpand.Error:
             pass

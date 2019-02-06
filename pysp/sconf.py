@@ -13,7 +13,7 @@ from pysp.error import PyspDebug, PyspError
 YNode = collections.namedtuple('YNode', 'xpath fullpath value')
 
 
-class YAML(PyspDebug):
+class SYAML(PyspDebug):
     TAG_INCLUDE  = '!include'
     MARK_INCLUDE = '__include__'
     EOL = '\n'
@@ -35,7 +35,7 @@ class YAML(PyspDebug):
         return newy
 
     def load(self, yml, node_value=None):
-        yaml.add_constructor(YAML.TAG_INCLUDE, self.include)
+        yaml.add_constructor(SYAML.TAG_INCLUDE, self.include)
         if os.path.exists(yml):
             with codecs.open(yml, 'r', encoding='utf-8') as fd:
                 try:
@@ -79,10 +79,10 @@ class YAML(PyspDebug):
             self._check_folder(node.fullpath)
             self.dprint('W: {}'.format(node.fullpath))
             with codecs.open(node.fullpath, 'w', encoding='utf-8') as fd:
-                for line in YAML.dump(ymlo, pretty=pretty).strip().splitlines():
-                    if line.find(YAML.TAG_INCLUDE) >= 0:
+                for line in SYAML.dump(ymlo, pretty=pretty).strip().splitlines():
+                    if line.find(SYAML.TAG_INCLUDE) >= 0:
                         line = line.replace("'", "")
-                    fd.write(line + YAML.EOL)
+                    fd.write(line + SYAML.EOL)
 
         def get_node(ymlo, xpaths):
             ymlso = ymlo
@@ -95,14 +95,14 @@ class YAML(PyspDebug):
             xpaths = node.xpath.split('.')
             ymlso = get_node(ymlo, xpaths)
             self.dprint('xpath={}, value={}'.format(node.xpath, node.value))
-            self.dprint(YAML.dump(ymlo, pretty=pretty))
-            del ymlso[YAML.MARK_INCLUDE]
+            self.dprint(SYAML.dump(ymlo, pretty=pretty))
+            del ymlso[SYAML.MARK_INCLUDE]
             store_file(ymlso, node)
 
             ymlso = get_node(ymlo, xpaths[:-1])
             if node.value:
-                ymlso[xpaths[-1]] = str(YAML.TAG_INCLUDE + ' ' + node.value)
-            self.dprint(YAML.dump(ymlo, pretty=pretty))
+                ymlso[xpaths[-1]] = str(SYAML.TAG_INCLUDE + ' ' + node.value)
+            self.dprint(SYAML.dump(ymlo, pretty=pretty))
 
         nodes = self.collect_node(ymlo)
         # self.DEBUG = True
@@ -112,10 +112,10 @@ class YAML(PyspDebug):
             store_node(ymlo, n)
 
     def store_mark(self, yml, fullpath, node_value):
-        if YAML.MARK_INCLUDE in yml:
-            emsg = 'Already use %s key in %s' % (YAML.MARK_INCLUDE, fullpath)
+        if SYAML.MARK_INCLUDE in yml:
+            emsg = 'Already use %s key in %s' % (SYAML.MARK_INCLUDE, fullpath)
             raise PyspError(emsg)
-        yml[YAML.MARK_INCLUDE] = {
+        yml[SYAML.MARK_INCLUDE] = {
             'fullpath': fullpath,
             'value': node_value
         }
@@ -128,7 +128,7 @@ class YAML(PyspDebug):
         return self.load(fname, node.value)
 
 
-class Config(YAML):
+class SConfig(SYAML):
     _data = {}
 
     def __init__(self, yml_file=None):
@@ -138,7 +138,7 @@ class Config(YAML):
             self.loadup(yml_file)
 
     def dump(self):
-        return super(Config, self).dump(self._data)
+        return super(SConfig, self).dump(self._data)
 
     def loadup(self, yml_file):
         if not os.path.exists(yml_file):
@@ -179,7 +179,7 @@ class Config(YAML):
                 'value': None
             }, oyml=data)
         self._fixup_folder(data, to_abs)
-        super(Config, self).store(data)
+        super(SConfig, self).store(data)
 
     def _parse_keylist(self, word):
         m = self._re_p.match(word)

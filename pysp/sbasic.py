@@ -16,7 +16,51 @@ def stderr_redirector(stream):
         sys.stderr = old_stderr
 
 
-class StrExpand:
+class SFileOp:
+    @classmethod
+    def mkdir(cls, fpath):
+        dirname = os.path.dirname(os.path.abspath(fpath))
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+    @classmethod
+    def str_to_file(cls, fpath, data):
+        cls.mkdir(fpath)
+        with open(fpath, 'w') as fd:
+            fd.write(data)
+
+    @classmethod
+    def file_to_str(cls, fpath):
+        with open(fpath, 'r') as fd:
+            return fd.read()
+
+    @classmethod
+    def file_to_readline(cls, fpath):
+        with open(fpath, 'r') as fd:
+            for line in fd:
+                yield line
+        # return ''
+
+
+class SSingleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class SStamp:
+    DB_DATETIME         = '%Y-%m-%d %H:%M:%S'
+    DB_DATE             = '%Y-%m-%d'
+    DATE_SEPERATERS = '.-_/'
+
+    @classmethod
+    def now(cls, form=DB_DATETIME):
+        return datetime.datetime.now().strftime(form)
+
+
+class SStrExpand:
     MAX_LOOP_COUNT = 30
 
     class Error(Exception):
@@ -47,7 +91,7 @@ class StrExpand:
                 # Just valid one-dimensional list
                 return ','.join([str(x) for x in value])
             elif type(value) is dict:
-                raise StrExpand.Error('No Rules for dict.')
+                raise SStrExpand.Error('No Rules for dict.')
             return str(value)
 
         if config is None:
@@ -70,47 +114,3 @@ class StrExpand:
                 emsg = 'Infinite Repeat Error: {}'.format(o_string)
                 raise cls.Error(emsg)
         return string
-
-
-class FileOp:
-    @classmethod
-    def mkdir(cls, fpath):
-        dirname = os.path.dirname(os.path.abspath(fpath))
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-
-    @classmethod
-    def str_to_file(cls, fpath, data):
-        cls.mkdir(fpath)
-        with open(fpath, 'w') as fd:
-            fd.write(data)
-
-    @classmethod
-    def file_to_str(cls, fpath):
-        with open(fpath, 'r') as fd:
-            return fd.read()
-
-    @classmethod
-    def file_to_readline(cls, fpath):
-        with open(fpath, 'r') as fd:
-            for line in fd:
-                yield line
-        # return ''
-
-
-class Singleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class Stamp:
-    DB_DATETIME         = '%Y-%m-%d %H:%M:%S'
-    DB_DATE             = '%Y-%m-%d'
-    DATE_SEPERATERS = '.-_/'
-
-    @classmethod
-    def now(cls, form=DB_DATETIME):
-        return datetime.datetime.now().strftime(form)
