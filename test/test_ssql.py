@@ -1,4 +1,5 @@
 
+import datetime
 import os
 import shutil
 import sqlalchemy as sa
@@ -57,6 +58,7 @@ tables:
         - [Float, Float]
         - [Bool, Boolean]
         - [DateTime, DateTime]
+        - [Date, Date]
         - [Alter1, String15, Unique]
         - [Alter2, String5]
 '''
@@ -69,6 +71,7 @@ tables:
         items = {
             'SNumber':  '0000000000',
             'Integer':  1234,
+            'Date':     datetime.datetime.now().date(),
         }
         db.upsert('inspection', **items)
         items = {
@@ -157,6 +160,7 @@ tables:
         - [Integer, Integer, NotNull]
         - [Float, Float]
         - [DateTime, DateTime]
+        - [Date, Date]
         - [Alter2, String5]
       migrate:
         operation: drop
@@ -185,6 +189,7 @@ tables:
         - [AString, String20]
         - [Integer, Integer, NotNull]
         - [DateTime, DateTime]
+        - [Date, Date]
       migrate:
         operation: rename
         columns:

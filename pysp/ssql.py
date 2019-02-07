@@ -100,6 +100,7 @@ class SSQL(object):
             'FLOAT':    'Float',
             'BOOLEAN':  'Boolean',
             'DATETIME': 'DateTime',
+            'DATE':     'Date',
         }
         if sql_type in ['VARCHAR', 'CHAR']:
             return (config_type.find('String') == 0)
@@ -112,6 +113,7 @@ class SSQL(object):
             'Float':    sa.Float,
             'Integer':  sa.Integer,
             'String':   sa.String,
+            'Date':     sa.Date,
         }
         def build_type(col_type, params):
             if col_type.find('String') == 0:
