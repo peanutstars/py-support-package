@@ -4,14 +4,14 @@ import shutil
 import sqlalchemy as sa
 import unittest
 
-from pysp.sbasic import SFileOp
+from pysp.sbasic import SFile
 from pysp.error import PyspDebug
 from pysp.sconf import SConfig
 from pysp.ssql import SSimpleDB
 
 
 
-class SsqlTest(unittest.TestCase, PyspDebug, SFileOp):
+class SsqlTest(unittest.TestCase, PyspDebug, SFile):
     # DEBUG = True
     test_folder     = '/tmp/sql/'
     config_file     = test_folder+'db.cfg'

@@ -3,7 +3,7 @@ import os
 import shutil
 import unittest
 
-from pysp.sbasic import SFileOp
+from pysp.sbasic import SFile
 from pysp.error import PyspDebug
 from pysp.sconf import SConfig
 
@@ -74,7 +74,7 @@ car:
           - Audi
 '''.strip()
 
-class ConfigTest(unittest.TestCase, PyspDebug, SFileOp):
+class ConfigTest(unittest.TestCase, PyspDebug, SFile):
     # DEBUG = True
     def_folder = '/tmp/yaml/default/'
     user_folder = '/tmp/yaml/user/'
@@ -85,7 +85,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, SFileOp):
         cfg.set_value('car.sedan.SM6.transmission', 'cvt')
         cfgfile = self.def_folder+'vehicle'
         cfg.store(cfgfile)
-        load_vehicle = self.file_to_str(cfgfile).strip()
+        load_vehicle = self.read_all(cfgfile).strip()
         self.assertTrue(Expected.default_vehicle == load_vehicle)
 
     def config_create_user(self):
@@ -94,7 +94,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, SFileOp):
         cfg.set_value('car.suv.QM6.color', 'cloud-perl')
         cfgfile = self.user_folder+'vehicle'
         cfg.store(cfgfile)
-        load_vehicle = self.file_to_str(cfgfile).strip()
+        load_vehicle = self.read_all(cfgfile).strip()
         self.assertTrue(Expected.user_vehicle == load_vehicle)
 
     def config_merge(self):
@@ -102,7 +102,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, SFileOp):
         cfg.overlay(self.user_folder+'vehicle')
         cfg.store()
         cfgfile = self.user_folder+'vehicle'
-        load_vehicle = self.file_to_str(cfgfile).strip()
+        load_vehicle = self.read_all(cfgfile).strip()
         self.assertTrue(Expected.overlay_user_vehicle == load_vehicle)
 
     def test_config(self):
@@ -127,8 +127,8 @@ class ConfigTest(unittest.TestCase, PyspDebug, SFileOp):
         self.dprint('\n'+cfg2.dump())
         self.assertTrue(cfg.dump() == cfg2.dump())
         for fname in ['vehicle', 'folder/sedan', 'folder/suv']:
-            default_load = self.file_to_str(self.def_folder+fname).strip()
-            user_load = self.file_to_str(self.user_folder+fname).strip()
+            default_load = self.read_all(self.def_folder+fname).strip()
+            user_load = self.read_all(self.user_folder+fname).strip()
             self.assertTrue(default_load == user_load)
 
     def test_access_keylist(self):

@@ -4,7 +4,7 @@ import os
 import shutil
 import unittest
 
-from pysp.sbasic import SFileOp
+from pysp.sbasic import SFile
 from pysp.error import PyspDebug
 from pysp.sconf import SYAML
 
@@ -88,7 +88,7 @@ def get_var_name(var, dir=locals()):
 
 
 
-class YamlTest(unittest.TestCase, PyspDebug, SFileOp):
+class YamlTest(unittest.TestCase, PyspDebug, SFile):
     # DEBUG = True
     folder = '/tmp/yaml/'
 
@@ -116,7 +116,7 @@ class YamlTest(unittest.TestCase, PyspDebug, SFileOp):
 
         for item in yml_files:
             fpath = self.convert_filename(item)
-            data = self.file_to_str(fpath).strip()
+            data = self.read_all(fpath).strip()
             self.dprint('Load: {}'.format(fpath))
             self.assertTrue(data == item)
 

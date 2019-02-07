@@ -1,12 +1,12 @@
 import os
 import unittest
 
-from pysp.sbasic import SStrExpand, SFileOp
+from pysp.sbasic import SStrExpand, SFile
 from pysp.sconf import SConfig
 from pysp.error import PyspDebug
 
 
-class StrExpandTest(PyspDebug, SFileOp, unittest.TestCase):
+class StrExpandTest(PyspDebug, SFile, unittest.TestCase):
 
     def _set_environ(self, kv):
         if kv:

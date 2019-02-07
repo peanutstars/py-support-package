@@ -16,7 +16,7 @@ def stderr_redirector(stream):
         sys.stderr = old_stderr
 
 
-class SFileOp:
+class SFile:
     @classmethod
     def mkdir(cls, fpath):
         dirname = os.path.dirname(os.path.abspath(fpath))
@@ -30,12 +30,12 @@ class SFileOp:
             fd.write(data)
 
     @classmethod
-    def file_to_str(cls, fpath):
+    def read_all(cls, fpath):
         with open(fpath, 'r') as fd:
             return fd.read()
 
     @classmethod
-    def file_to_readline(cls, fpath):
+    def readline(cls, fpath):
         with open(fpath, 'r') as fd:
             for line in fd:
                 yield line

@@ -3,14 +3,14 @@ import json
 # import sys
 
 
-class SJsonSerial:
-    CLASS_MARK = '__class__'
+class SJson:
+    CLASS_MARK = '__cls__'
 
     @classmethod
     def to_serial(cls, o, **kwargs):
         indent = kwargs.get('indent', None)
         def default(o):
-            if hasattr(o, cls.CLASS_MARK):
+            if hasattr(o, '__class__'):
                 # return { **o.__dict__, '__class__': o.__class__.__name__}
                 o.__dict__.update({cls.CLASS_MARK: o.__class__.__name__})
             return o.__dict__

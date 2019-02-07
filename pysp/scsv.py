@@ -2,10 +2,10 @@
 import codecs
 import os
 
-from pysp.sbasic import SFileOp, SStamp
+from pysp.sbasic import SFile, SStamp
 
 
-class STextFile(SFileOp):
+class STextFile(SFile):
     SPLIT_FILE_FORMAT   = '{fname}-{idx:03d}.{ext}'
     EOL                 = '\r\n'
 

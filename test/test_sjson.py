@@ -3,7 +3,7 @@ import os
 import shutil
 import unittest
 
-from pysp.sjson import SJsonSerial
+from pysp.sjson import SJson
 
 
 class InnerL2:
@@ -33,8 +33,8 @@ class JsonSerialTest(unittest.TestCase):
 
     def test_json_serial(self):
         ocls = OuterCls()
-        jstr = SJsonSerial.to_serial(ocls, indent=2)
-        ojson = SJsonSerial.to_deserial(jstr, globals=globals())
+        jstr = SJson.to_serial(ocls, indent=2)
+        ojson = SJson.to_deserial(jstr, globals=globals())
 
         self.assertTrue(
             ocls.inner.inner.dict['hello'] == ojson.inner.inner.dict['hello'])
