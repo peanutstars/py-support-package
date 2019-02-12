@@ -134,6 +134,7 @@ class SConfig(SYAML):
     def __init__(self, yml_file=None):
         self._data = {}
         self._re_p = re.compile(r'([\w-]+)\[([-\d]+)\]')
+        self.dirty = False
         if yml_file:
             self.loadup(yml_file)
 
@@ -162,7 +163,7 @@ class SConfig(SYAML):
                     fpath = ymlpath
                 self.set_value(xpath, fpath, oyml=oyml)
 
-    def overlay(self, yml_file):
+    def collecting(self, yml_file):
         # if not os.path.exists(yml_file):
             # raise PyspError('Not Exists: {}'.format(yml_file))
         if os.path.exists(yml_file):

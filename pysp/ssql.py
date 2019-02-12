@@ -296,23 +296,32 @@ class SSimpleDB(SSQL):
 
     def upsert(self, tablename, **kwargs):
         tbl = self.get_table(tablename)
-        pk = next(iter(kwargs))
+        data = kwargs.get('data')
+        only_insert = kwargs.get('only_insert', False)
+        rv = False
+        pk = next(iter(data))
         # pk_column = sa.sql.column(pk)
         pk_column = tbl.c[pk]
 
-        qc = sa.sql.select([tbl.c[pk]]).where(pk_column == kwargs[pk])
-        qi = sa.insert(tbl).values(**kwargs)
-        qu = sa.update(tbl).values(**kwargs).where(pk_column == kwargs[pk])
+        qc = sa.sql.select([tbl.c[pk]]).where(pk_column == data[pk])
+        qi = sa.insert(tbl).values(**data)
+        qu = sa.update(tbl).values(**data).where(pk_column == data[pk])
         self.session.begin_nested()
         try:
             item = self.session.query(qc).first()
             if item is None:
                 self.session.execute(qi)
+                rv = True
             else:
-                self.session.execute(qu)
+                if only_insert:
+                    rv = False
+                else:
+                    self.session.execute(qu)
+                    rv = True
             self.session.commit()
         except:
             self.session.rollback()
+        return rv
 
     def query(self, tablename, *args, **kwargs):
         size = kwargs.pop(self.SQL_SIZE, self.SQL_V_SIZE)

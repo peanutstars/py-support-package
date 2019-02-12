@@ -68,23 +68,32 @@ tables:
 
     def check_upsert(self):
         db = SSimpleDB(self.db_file, SConfig(self.config_file))
-        items = {
+        data = {
             'SNumber':  '0000000000',
             'Integer':  1234,
             'Date':     datetime.datetime.now().date(),
         }
-        db.upsert('inspection', **items)
         items = {
+            'data': data
+        }
+        db.upsert('inspection', **items)
+        data = {
             'SNumber':  '0000000000',
             'Alter2':   'Five5',
             'DateTime': sa.sql.func.now(),
         }
+        items = {
+            'data': data
+        }
         db.upsert('inspection', **items)
         for i in range(10):
-            items = {
+            data = {
                 'SNumber':  '%010d' % i,
                 'Integer':  9 - i,
                 'Alter1':   '%05d' % i,
+            }
+            items = {
+                'data': data
             }
             db.upsert('inspection', **items)
         del db

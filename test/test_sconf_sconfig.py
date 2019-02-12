@@ -99,7 +99,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, SFile):
 
     def config_merge(self):
         cfg = SConfig(self.def_folder+'vehicle')
-        cfg.overlay(self.user_folder+'vehicle')
+        cfg.collecting(self.user_folder+'vehicle')
         cfg.store()
         cfgfile = self.user_folder+'vehicle'
         load_vehicle = self.read_all(cfgfile).strip()
@@ -119,7 +119,7 @@ class ConfigTest(unittest.TestCase, PyspDebug, SFile):
         cfg = SConfig(self.def_folder+'vehicle')
         # self.DEBUG = True
         self.dprint('\n'+cfg.dump())
-        cfg.overlay(self.user_folder+'vehicle')
+        cfg.collecting(self.user_folder+'vehicle')
         self.dprint('\n'+cfg.dump())
         cfg.store()
         cfg2 = SConfig(self.user_folder+'vehicle')

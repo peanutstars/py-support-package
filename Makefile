@@ -29,7 +29,7 @@ zip: clean
 	@(7z a ../$(ZIP_FILE) ../$(shell basename $(PWD)))
 
 build: test clean
-	@rm -rf dist
+	@rm -rf dist/*.whl dist/*.tar.gz
 	@echo "__version__='$(VERSION)'" > pysp/__init__.py
 	python setup.py sdist bdist_wheel
 	@(rm pysp/__init__.py; touch pysp/__init__.py)
