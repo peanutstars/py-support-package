@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 
-from pysp.error import PyspDebug
+from pysp.serror import SDebug
 from pysp.sbasic import stderr_redirector
 
 
@@ -13,19 +13,19 @@ if sys.version_info[0] < 3:
 
 
 
-class Test1Debug(PyspDebug):
+class Test1Debug(SDebug):
 
     def __init__(self):
         pass
 
-class Test2Debug(PyspDebug):
+class Test2Debug(SDebug):
 
     def __init__(self):
         pass
 
 
 
-class PyspDebugTest(unittest.TestCase, PyspDebug):
+class PyspDebugTest(unittest.TestCase, SDebug):
     # DEBUG = True
 
     def get_expected_msg(self, msg):
@@ -66,7 +66,7 @@ class PyspDebugTest(unittest.TestCase, PyspDebug):
 
 
     def test_pyspdebug(self):
-        PyspDebug.DEBUG = True
+        SDebug.DEBUG = True
         t1 = Test1Debug()
         t2 = Test2Debug()
 
@@ -84,4 +84,4 @@ class PyspDebugTest(unittest.TestCase, PyspDebug):
         expected_msg = self.get_expected_msg(t1_dprint) + \
                        self.get_expected_msg(t2_dprint)
         self.assertTrue(expected_msg == stderr_msg)
-        PyspDebug.DEBUG = False
+        SDebug.DEBUG = False

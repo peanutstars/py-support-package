@@ -6,7 +6,7 @@ import sys
 
 
 
-class PyspDebug:
+class SDebug:
     DEBUG = False
     TAG_DEBUG = '[D] '
     TAG_ERROR = '[E] '
@@ -22,6 +22,19 @@ class PyspDebug:
     def iprint(self, *args, **kwargs):
         print(self.TAG_INFO, *args, file=sys.stderr, **kwargs)
 
+    @classmethod
+    def dprint(cls, *args, **kwargs):
+        if cls.DEBUG:
+            print(cls.TAG_DEBUG, *args, file=sys.stderr, **kwargs)
 
-class PyspError(Exception):
+    @classmethod
+    def eprint(cls, *args, **kwargs):
+        print(cls.TAG_ERROR, *args, file=sys.stderr, **kwargs)
+
+    @classmethod
+    def iprint(cls, *args, **kwargs):
+        print(cls.TAG_INFO, *args, file=sys.stderr, **kwargs)
+
+
+class SError(Exception):
     pass

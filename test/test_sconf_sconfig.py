@@ -4,7 +4,7 @@ import shutil
 import unittest
 
 from pysp.sbasic import SFile
-from pysp.error import PyspDebug
+from pysp.serror import SDebug
 from pysp.sconf import SConfig
 
 class Expected:
@@ -74,7 +74,7 @@ car:
           - Audi
 '''.strip()
 
-class ConfigTest(unittest.TestCase, PyspDebug, SFile):
+class ConfigTest(unittest.TestCase, SDebug, SFile):
     # DEBUG = True
     def_folder = '/tmp/yaml/default/'
     user_folder = '/tmp/yaml/user/'

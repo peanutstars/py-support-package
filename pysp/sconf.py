@@ -7,13 +7,13 @@ import os
 import re
 import yaml
 
-from pysp.error import PyspDebug, PyspError
+from pysp.serror import SDebug, SError
 
 
 YNode = collections.namedtuple('YNode', 'xpath fullpath value')
 
 
-class SYAML(PyspDebug):
+class SYAML(SDebug):
     TAG_INCLUDE  = '!include'
     MARK_INCLUDE = '__include__'
     EOL = '\n'
@@ -44,12 +44,12 @@ class SYAML(PyspDebug):
                     # return yaml.load(fd)
                 except yaml.YAMLError as e:
                     emsg = 'Error YAML Loading: %s\n%s' % (yml, str(e))
-                    raise PyspError(emsg)
+                    raise SError(emsg)
         try:
             return yaml.load(yml)
         except yaml.YAMLError as e:
             emsg = 'Error YAML Loading: %s\n%s' % (yml, str(e))
-            raise PyspError(emsg)
+            raise SError(emsg)
 
     def collect_node(self, ymlo, xpath=''):
         ns = []
@@ -114,7 +114,7 @@ class SYAML(PyspDebug):
     def store_mark(self, yml, fullpath, node_value):
         if SYAML.MARK_INCLUDE in yml:
             emsg = 'Already use %s key in %s' % (SYAML.MARK_INCLUDE, fullpath)
-            raise PyspError(emsg)
+            raise SError(emsg)
         yml[SYAML.MARK_INCLUDE] = {
             'fullpath': fullpath,
             'value': node_value
@@ -143,7 +143,7 @@ class SConfig(SYAML):
 
     def loadup(self, yml_file):
         if not os.path.exists(yml_file):
-            raise PyspError('Not Exists: {}'.format(yml_file))
+            raise SError('Not Exists: {}'.format(yml_file))
         if self._data:
             self.iprint('Overwrite')
         self._data = self.load(yml_file)
@@ -165,7 +165,7 @@ class SConfig(SYAML):
 
     def collecting(self, yml_file):
         # if not os.path.exists(yml_file):
-            # raise PyspError('Not Exists: {}'.format(yml_file))
+            # raise SError('Not Exists: {}'.format(yml_file))
         if os.path.exists(yml_file):
             newy = self.load(yml_file)
             self._data = self.merge(newy, self._data)
@@ -227,7 +227,7 @@ class SConfig(SYAML):
                         if len(data[_k]) == _i:
                             data[_k].append(value)
                             continue
-                        raise PyspError('Index or Not Supported Format #1')
+                        raise SError('Index or Not Supported Format #1')
                 else:
                     data = data[_k][_i]
                 continue
@@ -238,7 +238,7 @@ class SConfig(SYAML):
                         data[_k] = []
                         data[_k].append(value)
                         continue
-                raise PyspError('Index or Not Supported Format #2')
+                raise SError('Index or Not Supported Format #2')
             # Others
             if d == (lenka - 1):
                 data[k] = value
@@ -264,7 +264,7 @@ class SConfig(SYAML):
                     try:
                         del data[_k][_i]
                     except IndexError:
-                        raise PyspError('Index Out of Range')
+                        raise SError('Index Out of Range')
                 else:
                     data = data[_k][_i]
                 continue

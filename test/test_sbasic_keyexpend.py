@@ -3,10 +3,10 @@ import unittest
 
 from pysp.sbasic import SStrExpand, SFile
 from pysp.sconf import SConfig
-from pysp.error import PyspDebug
+from pysp.serror import SDebug
 
 
-class StrExpandTest(PyspDebug, SFile, unittest.TestCase):
+class StrExpandTest(SDebug, SFile, unittest.TestCase):
 
     def _set_environ(self, kv):
         if kv:
