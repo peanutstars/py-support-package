@@ -134,7 +134,7 @@ class SConfig(SYAML):
     def __init__(self, yml_file=None):
         self._data = {}
         self._re_p = re.compile(r'([\w-]+)\[([-\d]+)\]')
-        self.dirty = False
+        self._dirty = False
         if yml_file:
             self.loadup(yml_file)
 
@@ -167,6 +167,7 @@ class SConfig(SYAML):
         # if not os.path.exists(yml_file):
             # raise SError('Not Exists: {}'.format(yml_file))
         if os.path.exists(yml_file):
+            self._dirty = True
             newy = self.load(yml_file)
             self._data = self.merge(newy, self._data)
         self._fixup_folder(self._data, yml_file)
@@ -180,7 +181,8 @@ class SConfig(SYAML):
                 'value': None
             }, oyml=data)
         self._fixup_folder(data, to_abs)
-        super(SConfig, self).store(data)
+        if self._dirty:
+            super(SConfig, self).store(data)
 
     def _parse_keylist(self, word):
         m = self._re_p.match(word)
@@ -205,6 +207,7 @@ class SConfig(SYAML):
         return data
 
     def set_value(self, key, value, oyml=None):
+        self._dirty = True
         data = self._data if oyml is None else oyml
         karr = key.split('.')
         lenka = len(karr)
@@ -247,6 +250,7 @@ class SConfig(SYAML):
                 data = data[k]
 
     def delete(self, key, oyml=None):
+        self._dirty = True
         data = self._data if oyml is None else oyml
         karr = key.split('.')
         lenka = len(karr)
@@ -269,3 +273,8 @@ class SConfig(SYAML):
                     data = data[_k][_i]
                 continue
             # Others
+
+    def dirty(self):
+        if not self._dirty:
+            self.dprint('Forcedly Set DIRTY')
+        self._dirty = True

@@ -323,6 +323,33 @@ class SSimpleDB(SSQL):
             self.session.rollback()
         return rv
 
+    def upsert_array(self, tablename, **kwargs):
+        tbl = self.get_table(tablename)
+        arr_data = kwargs.get('data')
+        only_insert = kwargs.get('only_insert', False)
+
+        self.session.begin_nested()
+        for data in arr_data:
+            pk = next(iter(data))
+            pk_column = tbl.c[pk]
+            qc = sa.sql.select([tbl.c[pk]]).where(pk_column == data[pk])
+            qi = sa.insert(tbl).values(**data)
+            qu = sa.update(tbl).values(**data).where(pk_column == data[pk])
+            try:
+                item = self.session.query(qc).first()
+                if item is None:
+                    self.session.execute(qi)
+                else:
+                    if only_insert:
+                        raise self.Error('Only Insert Mode')
+                    else:
+                        self.session.execute(qu)
+            except:
+                self.session.rollback()
+                return False
+        self.session.commit()
+        return True
+
     def query(self, tablename, *args, **kwargs):
         size = kwargs.pop(self.SQL_SIZE, self.SQL_V_SIZE)
         page = kwargs.pop(self.SQL_PAGE, self.SQL_V_PAGE)

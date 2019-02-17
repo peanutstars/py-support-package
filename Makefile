@@ -39,5 +39,8 @@ upload:
 	    dist/pysp-$(VERSION).tar.gz \
 	    dist/pysp-$(VERSION)-py3-none-any.whl
 
+install: build
+	@(cd dist; ./pr pysp-$(VERSION)-py3-none-any.whl)
 
-.PHONY: test freeze setup clean zip build upload
+
+.PHONY: test freeze setup clean zip build upload install

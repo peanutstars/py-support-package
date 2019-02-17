@@ -10,7 +10,7 @@ class SJson:
     def to_serial(cls, o, **kwargs):
         indent = kwargs.get('indent', None)
         def default(o):
-            if type(o) is dict:
+            if type(o) in [dict, list]:
                 return o
             if hasattr(o, '__class__'):
                 # return { **o.__dict__, '__class__': o.__class__.__name__}
