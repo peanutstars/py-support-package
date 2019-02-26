@@ -26,7 +26,7 @@ class STextFile(SFile):
                 fname=self.fname, idx=self.split_index, ext=self.ext)
 
     def open_file(self, fname):
-        self.mkdir(fname)
+        self.mkdir(os.path.dirname(fname))
         self.curname = fname
         self.fd = codecs.open(fname, 'w', encoding='utf-8')
 

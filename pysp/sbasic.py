@@ -19,13 +19,12 @@ def stderr_redirector(stream):
 class SFile:
     @classmethod
     def mkdir(cls, fpath):
-        dirname = os.path.dirname(os.path.abspath(fpath))
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+        if not os.path.exists(fpath):
+            os.makedirs(fpath)
 
     @classmethod
     def str_to_file(cls, fpath, data):
-        cls.mkdir(fpath)
+        cls.mkdir(os.path.dirname(os.path.abspath(fpath)))
         with open(fpath, 'w') as fd:
             fd.write(data)
 
