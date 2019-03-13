@@ -2,12 +2,10 @@
 
 import codecs
 import hexdump
-import inspect
 import unittest
 import os
 
 from pysp.scsv import SCSV
-
 
 
 NORMAL_CONTENT = '''Normal,,\r
@@ -32,14 +30,15 @@ t
 ","=""2""","=""2.2"""\r
 '''
 
+
 class CSVTest(unittest.TestCase):
-    TMP_FOLDER          = '/tmp/csv/'
+    TMP_FOLDER = '/tmp/csv/'
     TMP_CSV_NORMAL_FILE = TMP_FOLDER+'csv_normal.csv'
     TMP_CSV_STRING_FILE = TMP_FOLDER+'csv_string.csv'
-    TMP_CSV_SPLIT_FILE  = TMP_FOLDER+'csv_split.csv'
+    TMP_CSV_SPLIT_FILE = TMP_FOLDER+'csv_split.csv'
 
-    data_columns    = ['string', 'integer', 'float']
-    data_fields     = [
+    data_columns = ['string', 'integer', 'float']
+    data_fields = [
             ['text', 1, 1.1],
             ['t\ne\nx\nt\n', 2, 2.2],
         ]

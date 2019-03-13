@@ -23,7 +23,7 @@ class SFile:
             os.makedirs(fpath)
 
     @classmethod
-    def str_to_file(cls, fpath, data):
+    def to_file(cls, fpath, data):
         cls.mkdir(os.path.dirname(os.path.abspath(fpath)))
         with open(fpath, 'w') as fd:
             fd.write(data)
@@ -43,15 +43,17 @@ class SFile:
 
 class SSingleton(type):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(SSingleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = \
+                super(SSingleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
 class SStamp:
-    DB_DATETIME         = '%Y-%m-%d %H:%M:%S'
-    DB_DATE             = '%Y-%m-%d'
+    DB_DATETIME = '%Y-%m-%d %H:%M:%S'
+    DB_DATE = '%Y-%m-%d'
     DATE_SEPERATERS = '.-_/'
 
     @classmethod

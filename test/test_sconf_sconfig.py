@@ -1,11 +1,11 @@
 
-import os
 import shutil
 import unittest
 
 from pysp.sbasic import SFile
 from pysp.serror import SDebug
 from pysp.sconf import SConfig
+
 
 class Expected:
     default_vehicle = '''
@@ -74,6 +74,7 @@ car:
           - Audi
 '''.strip()
 
+
 class ConfigTest(unittest.TestCase, SDebug, SFile):
     # DEBUG = True
     def_folder = '/tmp/yaml/default/'
@@ -113,9 +114,9 @@ class ConfigTest(unittest.TestCase, SDebug, SFile):
     def test_config_folder(self):
         shutil.rmtree(self.def_folder)
         shutil.rmtree(self.user_folder)
-        self.str_to_file(self.def_folder+'vehicle', FolderConfig.root)
-        self.str_to_file(self.def_folder+'/folder/sedan',FolderConfig.car_sedan)
-        self.str_to_file(self.def_folder+'/folder/suv', FolderConfig.car_suv)
+        self.to_file(self.def_folder+'vehicle', FolderConfig.root)
+        self.to_file(self.def_folder+'/folder/sedan', FolderConfig.car_sedan)
+        self.to_file(self.def_folder+'/folder/suv', FolderConfig.car_suv)
         cfg = SConfig(self.def_folder+'vehicle')
         # self.DEBUG = True
         self.dprint('\n'+cfg.dump())
@@ -133,7 +134,7 @@ class ConfigTest(unittest.TestCase, SDebug, SFile):
 
     def test_access_keylist(self):
         cfgfile = '/tmp/yaml2/config_list.yml'
-        self.str_to_file(cfgfile, ConfigList.target)
+        self.to_file(cfgfile, ConfigList.target)
         cfg = SConfig(cfgfile)
         self.assertTrue(cfg.get_value('car.sedan[2].name') == 'K7')
         self.assertTrue(cfg.get_value('car.sedan[1].vendor') == 'Hyundae')
@@ -162,5 +163,6 @@ class ConfigTest(unittest.TestCase, SDebug, SFile):
         cfg.delete('car.suv')
         self.assertTrue(cfg.get_value('car.suv', 'Nothing') == 'Nothing')
         cfg.delete('car.sedan[-1].vendor')
-        self.assertTrue(cfg.get_value('car.sedan[-1].vendor', 'Nothing') == 'Nothing')
+        result = cfg.get_value('car.sedan[-1].vendor', 'Nothing')
+        self.assertTrue(result == 'Nothing')
         cfg.store()

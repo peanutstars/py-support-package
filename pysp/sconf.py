@@ -14,7 +14,7 @@ YNode = collections.namedtuple('YNode', 'xpath fullpath value')
 
 
 class SYAML(SDebug):
-    TAG_INCLUDE  = '!include'
+    TAG_INCLUDE = '!include'
     MARK_INCLUDE = '__include__'
     EOL = '\n'
 
@@ -31,7 +31,7 @@ class SYAML(SDebug):
                     # self.dprint(k, v)
                     newy[k] = v
                 else:
-                    newy[k] = self.merge(newy[k], v) #if newy[k] else v
+                    newy[k] = self.merge(newy[k], v)  # if newy[k] else v
         return newy
 
     def load(self, yml, node_value=None):
@@ -79,7 +79,8 @@ class SYAML(SDebug):
             self._check_folder(node.fullpath)
             self.dprint('W: {}'.format(node.fullpath))
             with codecs.open(node.fullpath, 'w', encoding='utf-8') as fd:
-                for line in SYAML.dump(ymlo, pretty=pretty).strip().splitlines():
+                data = SYAML.dump(ymlo, pretty=pretty)
+                for line in data.strip().splitlines():
                     if line.find(SYAML.TAG_INCLUDE) >= 0:
                         line = line.replace("'", "")
                     fd.write(line + SYAML.EOL)
@@ -107,7 +108,7 @@ class SYAML(SDebug):
         nodes = self.collect_node(ymlo)
         # self.DEBUG = True
         for n in nodes:
-            self.dprint('{x}|{f}|{v}'.format(x=n.xpath, f=n.fullpath, v=n.value))
+            self.dprint(f'{n.xpath}|{n.fullpath}|{n.value}')
             self.dprint('============')
             store_node(ymlo, n)
 
@@ -165,7 +166,7 @@ class SConfig(SYAML):
 
     def collecting(self, yml_file):
         # if not os.path.exists(yml_file):
-            # raise SError('Not Exists: {}'.format(yml_file))
+        #     raise SError('Not Exists: {}'.format(yml_file))
         if os.path.exists(yml_file):
             self._dirty = True
             newy = self.load(yml_file)
@@ -201,7 +202,7 @@ class SConfig(SYAML):
                 try:
                     data = data[_k][_i]
                     continue
-                except:
+                except Exception:
                     pass
             return defvalue
         return data
@@ -224,7 +225,7 @@ class SConfig(SYAML):
                 if d == (lenka - 1):
                     try:
                         data[_k][_i] = value
-                    except:
+                    except Exception:
                         # Append value to list,
                         # but it allows only the index is the next number
                         if len(data[_k]) == _i:

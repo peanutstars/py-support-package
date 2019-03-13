@@ -9,6 +9,7 @@ class SJson:
     @classmethod
     def to_serial(cls, o, **kwargs):
         indent = kwargs.get('indent', None)
+
         def default(o):
             if type(o) in [dict, list]:
                 return o
@@ -22,6 +23,7 @@ class SJson:
     @classmethod
     def to_deserial(cls, jstr, **kwargs):
         _globals = kwargs.get('globals', globals())
+
         def hook(o):
             if cls.CLASS_MARK in o:
                 _cls = _globals[o[cls.CLASS_MARK]]

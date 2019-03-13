@@ -3,11 +3,9 @@
 import copy
 import sqlalchemy as sa
 
-from sqlalchemy import event, or_, and_
-from sqlalchemy.engine import Engine
+from sqlalchemy import or_, and_  # , event
+# from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-
-from pysp.sconf import SConfig
 
 
 # @event.listens_for(Engine, "connect")
@@ -22,7 +20,7 @@ from pysp.sconf import SConfig
 
 
 class SSQL(object):
-    TEMP_PREFIX     = 'tmp_'
+    TEMP_PREFIX = 'tmp_'
 
     class Error(Exception):
         pass
@@ -75,19 +73,20 @@ class SSQL(object):
                         cn=colname, a=colparam[1], b=coltype)
                     raise SSQL.Error(emsg)
                 if coltype in ['VARCHAR', 'CHAR']:
-                    # print('@@@', colname, column.type.collation, column.type.length)
+                    coltype = column.type
+                    # print('@@@', colname, coltype.collation, coltype.length)
                     length = int(colparam[1][len('String'):])
-                    if length != column.type.length:
+                    if length != coltype.length:
                         emsg = 'Column {cn}: Not Matched String Length::' \
-                            'Expected %d, but %d' % (length, column.type.length)
+                            'Expected %d, but %d' % (length, coltype.length)
                         raise SSQL.Error(emsg.format(cn=colname))
-                if 'PrimaryKey' in colparam and column.primary_key == False:
+                if 'PrimaryKey' in colparam and column.primary_key is False:
                     emsg = 'Column {cn}: Not Set Primary Key Property'
                     raise SSQL.Error(emsg.format(cn=colname))
-                if 'Unique' in colparam and column.unique == False:
+                if 'Unique' in colparam and column.unique is False:
                     emsg = 'Column {cn}: Not Set Unique Property'
                     raise SSQL.Error(emsg.format(cn=colname))
-                if 'NotNull' in colparam and column.nullable == True:
+                if 'NotNull' in colparam and column.nullable is True:
                     emsg = 'Column {cn}: Not Null'
                     raise SSQL.Error(emsg.format(cn=colname))
             else:
@@ -115,28 +114,29 @@ class SSQL(object):
             'String':   sa.String,
             'Date':     sa.Date,
         }
-        def build_type(col_type, params):
-            if col_type.find('String') == 0:
+
+        def build_type(coltype, params):
+            if coltype.find('String') == 0:
                 args = []
                 kwargs = {}
-                if len('String') == len(col_type):
+                if len('String') == len(coltype):
                     raise SSQL.Error('Need Length of String')
-                args.append(int(col_type[len('String'):]))
+                args.append(int(coltype[len('String'):]))
                 if 'CollateNocase' in params:
                     kwargs['collation'] = 'NOCASE'
                 return sa.String(*args, **kwargs)
             else:
                 try:
-                    return dbtypes.get(col_type)()
-                except:
-                    raise SSQL.Error('Unknown Column Type: {}'.format(col_type))
+                    return dbtypes.get(coltype)()
+                except Exception:
+                    raise SSQL.Error('Unknown Column Type: {}'.format(coltype))
 
         params = copy.deepcopy(params)
         args = []
         kwargs = {}
         args.append(params.pop(0))
-        col_type = params.pop(0)
-        args.append(build_type(col_type, params))
+        coltype = params.pop(0)
+        args.append(build_type(coltype, params))
         kwargs['nullable'] = False if 'NotNull' in params else True
         kwargs['primary_key'] = True if 'PrimaryKey' in params else False
         kwargs['unique'] = True if 'Unique' in params else False
@@ -156,8 +156,8 @@ class SSQL(object):
 
     def _drop_columns(self, meta, dictable, colnames):
         # BEGIN TRANSACTION;
-        ### XXX: This function worked, but lost each the columns property !!
-        ### CREATE TABLE t1_backup AS SELECT a, b FROM t1;
+        # ## XXX: This function worked, but lost each the columns property !!
+        # ## CREATE TABLE t1_backup AS SELECT a, b FROM t1;
         # CREATE TABLE t1_backup ( columns with property )
         # INSERT INTO t1_backup SELECT a, b FROM t1;
         # DROP TABLE t1;
@@ -176,7 +176,7 @@ class SSQL(object):
         # Check to exist tmp_tablename
         try:
             self.get_table(form['ttn'])
-            emesg = 'Already Exists Table "{ttn}"'
+            emsg = 'Already Exists Table "{ttn}"'
             raise SSQL.Error(emsg.format(**form))
         except sa.exc.NoSuchTableError:
             self._create_table(meta, dictable)
@@ -187,7 +187,7 @@ class SSQL(object):
             for sql in sqls:
                 self.session.execute(sql.format(**form))
             self.session.commit()
-        except:
+        except Exception:
             self.session.rollback()
         # Restore the name of table
         dictable['name'] = tablename
@@ -214,13 +214,13 @@ class SSQL(object):
 
 
 class SSimpleDB(SSQL):
-    SQL_ECHO    = False
-    OP_AND      = 'and'
-    OP_OR       = 'or'
-    SQL_PAGE    = 'page'
-    SQL_SIZE    = 'size'
-    SQL_V_PAGE  = 0
-    SQL_V_SIZE  = 5
+    SQL_ECHO = False
+    OP_AND = 'and'
+    OP_OR = 'or'
+    SQL_PAGE = 'page'
+    SQL_SIZE = 'size'
+    SQL_V_PAGE = 0
+    SQL_V_SIZE = 5
 
     def __init__(self, dbpath, config):
         super(SSimpleDB, self).__init__(config)
@@ -319,7 +319,7 @@ class SSimpleDB(SSQL):
                     self.session.execute(qu)
                     rv = True
             self.session.commit()
-        except:
+        except Exception:
             self.session.rollback()
         return rv
 
@@ -344,7 +344,7 @@ class SSimpleDB(SSQL):
                         raise self.Error('Only Insert Mode')
                     else:
                         self.session.execute(qu)
-            except:
+            except Exception:
                 self.session.rollback()
                 return False
         self.session.commit()
@@ -361,7 +361,7 @@ class SSimpleDB(SSQL):
 
         try:
             return self.session.query(qo).all()
-        except:
+        except Exception:
             raise SSimpleDB.Error('Query: {}'.format(self.to_sql(qo)))
 
     def count(self, tablename, *args, **kwargs):
@@ -369,7 +369,7 @@ class SSimpleDB(SSQL):
         qo = self._build_query(tbl, *args, **kwargs)
         try:
             return self.session.query(qo).count()
-        except:
+        except Exception:
             raise SSimpleDB.Error('Count: {}'.format(self.to_sql(qo)))
 
     def vacuum(self):

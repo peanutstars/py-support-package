@@ -83,9 +83,9 @@ merge: Merge Point 2
 
 yml_files = [main_yml, sub_l1_yml, sub_l2_yml]
 
+
 def get_var_name(var, dir=locals()):
     return [key for key, val in dir.items() if id(val) == id(var)][0]
-
 
 
 class YamlTest(unittest.TestCase, SDebug, SFile):
@@ -102,12 +102,12 @@ class YamlTest(unittest.TestCase, SDebug, SFile):
 
         for item in yml_files:
             fpath = self.convert_filename(item)
-            self.str_to_file(fpath, item)
+            self.to_file(fpath, item)
         yfile = self.convert_filename(yml_files[0])
         self.ymlo = yaml.load(yfile)
         loaded_yml = yaml.dump(self.ymlo, pretty=True).strip()
         self.dprint(loaded_yml)
-        self.assertTrue(loaded_yml ==  expected_mark_yml)
+        self.assertTrue(loaded_yml == expected_mark_yml)
 
     def store_test(self, yaml):
         shutil.rmtree(self.folder)

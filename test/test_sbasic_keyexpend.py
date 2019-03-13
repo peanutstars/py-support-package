@@ -57,7 +57,7 @@ vehicle:
         wheels: 4
 '''
         vehicle_file = '/tmp/test/vehicle.yml'
-        self.str_to_file(vehicle_file, yml_string)
+        self.to_file(vehicle_file, yml_string)
         cfg = SConfig(vehicle_file)
         # self.DEBUG = True
 
@@ -96,7 +96,7 @@ link: $ENV_LINK
 link2: "@link"
 '''
         vehicle_file = '/tmp/test/vehicle.yml'
-        self.str_to_file(vehicle_file, yml_string)
+        self.to_file(vehicle_file, yml_string)
         cfg = SConfig(vehicle_file)
         # self.DEBUG = True
 
@@ -131,8 +131,8 @@ link2: "@link"
             rv, config, expected, string, keyvalue = case
             if keyvalue:
                 self._set_environ(keyvalue)
-
-            assert rv == (expected == SStrExpand.convert(string, config=config))
+            result = SStrExpand.convert(string, config=config)
+            assert rv == (expected == result)
 
         self._set_environ('ENV_LINK=@link2')
         try:

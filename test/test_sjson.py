@@ -1,6 +1,4 @@
 
-import os
-import shutil
 import unittest
 
 from pysp.sjson import SJson

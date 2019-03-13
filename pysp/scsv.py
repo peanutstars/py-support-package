@@ -6,8 +6,8 @@ from pysp.sbasic import SFile, SStamp
 
 
 class STextFile(SFile):
-    SPLIT_FILE_FORMAT   = '{fname}-{idx:03d}.{ext}'
-    EOL                 = '\r\n'
+    SPLIT_FILE_FORMAT = '{fname}-{idx:03d}.{ext}'
+    EOL = '\r\n'
 
     def __init__(self, path):
         apath = path.split('.')
@@ -44,8 +44,8 @@ class STextFile(SFile):
 
 
 class SCSV(STextFile):
-    MAX_FIELD_COUNT     = 100000
-    APPEND_SUBTITLE     = '{title} / continue {idx:03d}'
+    MAX_FIELD_COUNT = 100000
+    APPEND_SUBTITLE = '{title} / continue {idx:03d}'
 
     def __init__(self, path, title, columns):
         super(SCSV, self).__init__(path)

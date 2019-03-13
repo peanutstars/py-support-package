@@ -11,12 +11,11 @@ from pysp.sconf import SConfig
 from pysp.ssql import SSimpleDB
 
 
-
 class SsqlTest(unittest.TestCase, SDebug, SFile):
     # DEBUG = True
-    test_folder     = '/tmp/sql/'
-    config_file     = test_folder+'db.cfg'
-    db_file         = test_folder+'test.sqlite3'
+    test_folder = '/tmp/sql/'
+    config_file = test_folder+'db.cfg'
+    db_file = test_folder+'test.sqlite3'
 
     def test_db(self):
         if os.path.exists(self.test_folder):
@@ -29,7 +28,7 @@ class SsqlTest(unittest.TestCase, SDebug, SFile):
             self.check_count()
             self.check_drop_columns()
             self.check_rename_columns()
-        except:
+        except Exception:
             self.assertTrue(False)
 
     def check_create(self):
@@ -43,7 +42,7 @@ tables:
         - [Bool, Boolean]
         - [DateTime, DateTime]
 '''
-        self.str_to_file(self.config_file, DBCONFIG)
+        self.to_file(self.config_file, DBCONFIG)
         dbconfig = SConfig(self.config_file)
         db = SSimpleDB(self.db_file, dbconfig)
         del db
@@ -62,7 +61,7 @@ tables:
         - [Alter1, String15, Unique]
         - [Alter2, String5]
 '''
-        self.str_to_file(self.config_file, DBCONFIG)
+        self.to_file(self.config_file, DBCONFIG)
         db = SSimpleDB(self.db_file, SConfig(self.config_file))
         del db
 
@@ -115,7 +114,7 @@ tables:
         data = data[0]
         self.assertTrue(data[0] == '0000000000')
         self.assertTrue(data[1] == 9)
-        self.assertTrue(data[2] == None)
+        self.assertTrue(data[2] is None)
         self.assertTrue(data[3] == '00000')
         self.assertTrue(data[4] == 'Five5')
 
@@ -174,7 +173,7 @@ tables:
       migrate:
         operation: drop
 '''
-        self.str_to_file(self.config_file, DBCONFIG)
+        self.to_file(self.config_file, DBCONFIG)
         db = SSimpleDB(self.db_file, SConfig(self.config_file))
         columns = ['SNumber', 'Integer', 'Alter2']
         options = {
@@ -204,7 +203,7 @@ tables:
         columns:
             Pass: Alter2
 '''
-        self.str_to_file(self.config_file, DBCONFIG)
+        self.to_file(self.config_file, DBCONFIG)
         db = SSimpleDB(self.db_file, SConfig(self.config_file))
         columns = ['SNumber', 'Integer', 'Pass']
         options = {
