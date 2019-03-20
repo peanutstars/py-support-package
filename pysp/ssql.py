@@ -324,10 +324,15 @@ class SSimpleDB(SSQL):
         return rv
 
     def upsert_array(self, tablename, **kwargs):
+        '''
+        param data - If the content of the array had mixed in the 'only_insert'
+                     mode, it updates only non-existent data.
+        '''
         tbl = self.get_table(tablename)
         arr_data = kwargs.get('data')
         only_insert = kwargs.get('only_insert', False)
 
+        executed_count = 0
         self.session.begin_nested()
         for data in arr_data:
             pk = next(iter(data))
@@ -339,16 +344,18 @@ class SSimpleDB(SSQL):
                 item = self.session.query(qc).first()
                 if item is None:
                     self.session.execute(qi)
+                    executed_count += 1
                 else:
                     if only_insert:
-                        raise self.Error('Only Insert Mode')
+                        continue
                     else:
                         self.session.execute(qu)
+                        executed_count += 1
             except Exception:
                 self.session.rollback()
                 return False
         self.session.commit()
-        return True
+        return True if executed_count > 0 else False
 
     def query(self, tablename, *args, **kwargs):
         size = kwargs.pop(self.SQL_SIZE, self.SQL_V_SIZE)

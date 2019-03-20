@@ -5,12 +5,14 @@ import sys
 # _print = partial(print, file=sys.stdout)
 
 
-class SDebug:
+class Debug:
     DEBUG = False
     TAG_DEBUG = '[D] '
     TAG_ERROR = '[E] '
     TAG_INFO = '[I] '
 
+
+class SDebug(Debug):
     def dprint(self, *args, **kwargs):
         if self.DEBUG:
             print(self.TAG_DEBUG, *args, file=sys.stderr, **kwargs)
@@ -21,18 +23,19 @@ class SDebug:
     def iprint(self, *args, **kwargs):
         print(self.TAG_INFO, *args, file=sys.stderr, **kwargs)
 
-    # @classmethod
-    # def dprint(cls, *args, **kwargs):
-    #     if cls.DEBUG:
-    #         print(cls.TAG_DEBUG, *args, file=sys.stderr, **kwargs)
-    #
-    # @classmethod
-    # def eprint(cls, *args, **kwargs):
-    #     print(cls.TAG_ERROR, *args, file=sys.stderr, **kwargs)
-    #
-    # @classmethod
-    # def iprint(cls, *args, **kwargs):
-    #     print(cls.TAG_INFO, *args, file=sys.stderr, **kwargs)
+class SCDebug(Debug):
+    @classmethod
+    def dprint(cls, *args, **kwargs):
+        if cls.DEBUG:
+            print(cls.TAG_DEBUG, *args, file=sys.stderr, **kwargs)
+
+    @classmethod
+    def eprint(cls, *args, **kwargs):
+        print(cls.TAG_ERROR, *args, file=sys.stderr, **kwargs)
+
+    @classmethod
+    def iprint(cls, *args, **kwargs):
+        print(cls.TAG_INFO, *args, file=sys.stderr, **kwargs)
 
 
 class SError(Exception):
