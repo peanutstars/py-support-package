@@ -4,6 +4,7 @@ import re
 import sys
 
 from contextlib import contextmanager
+from weakref import WeakValueDictionary
 
 
 @contextmanager
@@ -42,12 +43,12 @@ class SFile:
 
 
 class SSingleton(type):
-    _instances = {}
+    _instances = {}  # WeakValueDictionary()
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = \
-                super(SSingleton, cls).__call__(*args, **kwargs)
+            instance = super(SSingleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = instance
         return cls._instances[cls]
 
 
