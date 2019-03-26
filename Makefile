@@ -34,7 +34,7 @@ build: test clean
 	python setup.py sdist bdist_wheel
 	@(rm pysp/__init__.py; touch pysp/__init__.py)
 
-upload:
+upload: build
 	python -m twine upload \
 	    dist/pysp-$(VERSION).tar.gz \
 	    dist/pysp-$(VERSION)-py3-none-any.whl

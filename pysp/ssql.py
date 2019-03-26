@@ -250,6 +250,10 @@ class SSimpleDB(SSQL):
                 columns.append(table.c[col])
         return columns if columns else table.c
 
+    def get_colnames(self, tablename):
+        table = self.get_table(tablename)
+        return [x.name for x in table.c]
+
     def _append_wheres(self, qo, table, **kwargs):
         wheres = kwargs.pop('wheres', {})
         operate = kwargs.pop('operate', self.OP_AND)
