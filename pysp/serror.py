@@ -7,13 +7,14 @@ from inspect import getframeinfo, stack
 
 
 _log = logging.getLogger('pysp')
+_log.handlers = []
 if 'DEBUG_PYTHON' in os.environ:
     _log_level = logging.DEBUG
     _log.setLevel(_log_level)
     h = logging.StreamHandler()
     h.setLevel(_log_level)
     _log.addHandler(h)
-    _log.propagate = 0
+    # _log.propagate = 0
 
 # _LOG_FORMAT = '%(asctime)s: %(message)s'
 # _lhandler = logging.StreamHandler()
