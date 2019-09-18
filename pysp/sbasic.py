@@ -1,3 +1,4 @@
+import codecs
 import datetime
 import os
 import re
@@ -19,24 +20,32 @@ def stderr_redirector(stream):
 
 class SFile:
     @classmethod
+    def expand_path(cls, fpath):
+        return os.path.expanduser(fpath)
+
+    @classmethod
     def mkdir(cls, fpath):
+        fpath = cls.expand_path(fpath)
         if not os.path.exists(fpath):
             os.makedirs(fpath)
 
     @classmethod
     def to_file(cls, fpath, data):
+        fpath = cls.expand_path(fpath)
         cls.mkdir(os.path.dirname(os.path.abspath(fpath)))
-        with open(fpath, 'w') as fd:
+        with codecs.open(fpath, 'w', encoding='utf-8') as fd:
             fd.write(data)
 
     @classmethod
     def read_all(cls, fpath):
-        with open(fpath, 'r') as fd:
+        fpath = cls.expand_path(fpath)
+        with codecs.open(fpath, 'r', encoding='utf-8') as fd:
             return fd.read()
 
     @classmethod
     def readline(cls, fpath):
-        with open(fpath, 'r') as fd:
+        fpath = cls.expand_path(fpath)
+        with codecs.open(fpath, 'r', encoding='utf-8') as fd:
             for line in fd:
                 yield line
         # return ''
