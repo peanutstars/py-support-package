@@ -40,13 +40,13 @@ class SYAML(SDebug):
             with codecs.open(yml, 'r', encoding='utf-8') as fd:
                 try:
                     # pass a file descripter, if use '!include' method
-                    return self.store_mark(yaml.load(fd), yml, node_value)
-                    # return yaml.load(fd)
+                    return self.store_mark(yaml.load(fd, Loader=yaml.Loader), yml, node_value)
+                    # return yaml.load(fd, Loader=yaml.Loader)
                 except yaml.YAMLError as e:
                     emsg = 'Error YAML Loading: %s\n%s' % (yml, str(e))
                     raise SError(emsg)
         try:
-            return yaml.load(yml)
+            return yaml.load(yml, Loader=yaml.Loader)
         except yaml.YAMLError as e:
             emsg = 'Error YAML Loading: %s\n%s' % (yml, str(e))
             raise SError(emsg)
